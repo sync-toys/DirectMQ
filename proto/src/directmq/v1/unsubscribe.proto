@@ -1,0 +1,8 @@
+syntax = "proto3";
+package directmq.v1;
+option go_package = "./protocol";
+
+message Unsubscribe {
+    string client_id = 1;
+    string topic = 2;
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+package directmq.v1;
+option go_package = "./protocol";
+
+import "directmq/v1/version.proto";
+import "directmq/v1/connection.proto";
+import "directmq/v1/publish.proto";
+import "directmq/v1/subscribe.proto";
+import "directmq/v1/unsubscribe.proto";
+
+message DataFrame {
+    oneof command {
+        SupportedProtocolVersions supported_protocol_versions = 1;
+        InitConnection init_connection = 2;
+        ConnectionAccepted connection_accepted = 3;
+        Publish publish = 4;
+        Subscribe subscribe = 5;
+        SubscribeOnce subscribe_once = 6;
+        Unsubscribe unsubscribe = 7;
+        GracefullyClose gracefully_close = 8;
+    }
+}

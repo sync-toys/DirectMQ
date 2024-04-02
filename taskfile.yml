@@ -1,0 +1,25 @@
+version: 3
+
+tasks:
+  build-image:
+    desc: Build the Docker image
+    silent: true
+    cmds:
+      - echo Building the protocols tools Docker image...
+      - docker build -t directmq/protogen ./proto
+
+  generate:
+    desc: Generate output from Protocol Buffer files
+    silent: true
+    cmds:
+      - echo Generating output from Protocol Buffer files...
+
+      - |
+        docker run \
+          --volume "$(pwd)/proto:/protocols" \
+          --volume "$(pwd)/cpp:/projects/cpp" \
+          --volume "$(pwd)/go:/projects/go" \
+          --volume "$(pwd)/ts:/projects/ts" \
+          directmq/protogen
+          
+      - echo Protocol Buffer files generated successfully
