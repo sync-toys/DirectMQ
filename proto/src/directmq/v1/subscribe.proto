@@ -8,6 +8,7 @@ message Subscribe {
 }
 
 message SubscribeOnce {
-    string client_id = 1;
-    string topic = 2;
+    string subscription_id = 1;
+    string client_id = 2;
+    string topic = 3;
 }

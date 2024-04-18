@@ -3,12 +3,12 @@ package directmq.v1;
 option go_package = "./protocol";
 
 message InitConnection {
-    int64 max_message_size = 3;
+    uint64 max_message_size = 3;
     string client_id = 2;
 }
 
 message ConnectionAccepted {
-    int64 max_message_size = 3;
+    uint64 max_message_size = 3;
     string client_id = 2;
 }
 

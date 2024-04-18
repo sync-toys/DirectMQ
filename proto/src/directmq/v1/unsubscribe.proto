@@ -6,3 +6,9 @@ message Unsubscribe {
     string client_id = 1;
     string topic = 2;
 }
+
+message UnsubscribeOnce {
+    string subscription_id = 1;
+    string client_id = 2;
+    string topic = 3;
+}

@@ -4,19 +4,24 @@ option go_package = "./protocol";
 
 import "directmq/v1/version.proto";
 import "directmq/v1/connection.proto";
+import "directmq/v1/loop_detection.proto";
 import "directmq/v1/publish.proto";
 import "directmq/v1/subscribe.proto";
 import "directmq/v1/unsubscribe.proto";
 
 message DataFrame {
+    int32 ttl = 1;
     oneof command {
-        SupportedProtocolVersions supported_protocol_versions = 1;
-        InitConnection init_connection = 2;
-        ConnectionAccepted connection_accepted = 3;
-        Publish publish = 4;
-        Subscribe subscribe = 5;
-        SubscribeOnce subscribe_once = 6;
-        Unsubscribe unsubscribe = 7;
-        GracefullyClose gracefully_close = 8;
+        SupportedProtocolVersions supported_protocol_versions = 2;
+        InitConnection init_connection = 3;
+        ConnectionAccepted connection_accepted = 4;
+        LoopDetection loop_detection = 5;
+        LoopDetected loop_detected = 6;
+        Publish publish = 7;
+        Subscribe subscribe = 8;
+        SubscribeOnce subscribe_once = 9;
+        Unsubscribe unsubscribe = 10;
+        UnsubscribeOnce unsubscribe_once = 11;
+        GracefullyClose gracefully_close = 12;
     }
 }

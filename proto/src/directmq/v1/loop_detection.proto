@@ -1,0 +1,11 @@
+syntax = "proto3";
+package directmq.v1;
+option go_package = "./protocol";
+
+message LoopDetection {
+    repeated string path = 1;
+}
+
+message LoopDetected {
+    repeated string path = 1;
+}
