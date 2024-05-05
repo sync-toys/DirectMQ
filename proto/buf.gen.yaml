@@ -2,9 +2,9 @@ version: v1
 
 plugins:
   - plugin: go
-    out: gen/go
-  - plugin: es
-    opt: target=ts
-    out: gen/ts
-  - plugin: nanopb
-    out: gen/cpp
+    out: /sdk/go
+#   - plugin: es
+#     opt: target=ts
+#     out: /sdk/ts
+#   - plugin: nanopb
+#     out: /sdk/cpp
