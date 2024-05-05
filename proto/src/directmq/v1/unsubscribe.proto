@@ -3,12 +3,5 @@ package directmq.v1;
 option go_package = "./protocol";
 
 message Unsubscribe {
-    string client_id = 1;
-    string topic = 2;
-}
-
-message UnsubscribeOnce {
-    string subscription_id = 1;
-    string client_id = 2;
-    string topic = 3;
+    string topic = 1;
 }

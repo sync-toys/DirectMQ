@@ -3,12 +3,5 @@ package directmq.v1;
 option go_package = "./protocol";
 
 message Subscribe {
-    string client_id = 1;
-    string topic = 2;
-}
-
-message SubscribeOnce {
-    string subscription_id = 1;
-    string client_id = 2;
-    string topic = 3;
+    string topic = 1;
 }

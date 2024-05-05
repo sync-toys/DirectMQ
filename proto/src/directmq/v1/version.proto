@@ -1,7 +1,0 @@
-syntax = "proto3";
-package directmq.v1;
-option go_package = "./protocol";
-
-message SupportedProtocolVersions {
-    repeated uint32 supported_protocol_versions = 1;
-}

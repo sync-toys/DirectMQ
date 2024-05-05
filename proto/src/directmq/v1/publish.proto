@@ -2,15 +2,14 @@ syntax = "proto3";
 package directmq.v1;
 option go_package = "./protocol";
 
-enum DeliveryMode {
-    DELIVERY_MODE_AT_LEAST_ONCE_UNSPECIFIED = 0;
-    DELIVERY_MODE_AT_MOST_ONCE = 1;
+enum DeliveryStrategy {
+    DELIVERY_STRATEGY_AT_LEAST_ONCE_UNSPECIFIED = 0;
+    DELIVERY_STRATEGY_AT_MOST_ONCE = 1;
 }
 
 message Publish {
-    string client_id = 1;
-    string topic = 2;
-    DeliveryMode mode = 3;
-    int64 size = 4;
-    bytes payload = 5;
+    string topic = 1;
+    DeliveryStrategy delivery_strategy = 2;
+    int64 size = 3;
+    bytes payload = 4;
 }
