@@ -1,25 +1,56 @@
 version: 3
 
 tasks:
-  build-image:
-    desc: Build the Docker image
-    silent: true
-    cmds:
-      - echo Building the protocols tools Docker image...
-      - docker build -t directmq/protogen ./proto
+    default:
+        desc: Show all available tasks
+        silent: true
+        cmds:
+            - task --list-all
 
-  generate:
-    desc: Generate output from Protocol Buffer files
-    silent: true
-    cmds:
-      - echo Generating output from Protocol Buffer files...
+    proto:build-image:
+        desc: Build the proto builder Docker image
+        silent: true
+        cmds:
+            - echo Building the protocols tools Docker image...
+            - docker build -t directmq/protogen ./proto
 
-      - |
-        docker run \
-          --volume "$(pwd)/proto:/protocols" \
-          --volume "$(pwd)/cpp:/projects/cpp" \
-          --volume "$(pwd)/go:/projects/go" \
-          --volume "$(pwd)/ts:/projects/ts" \
-          directmq/protogen
-          
-      - echo Protocol Buffer files generated successfully
+    proto:generate:
+        desc: Generate output from Protocol Buffer files
+        silent: true
+        cmds:
+            - echo Generating output from Protocol Buffer files...
+
+            - |
+                docker run \
+                --volume "$(pwd)/proto:/protocols" \
+                --volume "$(pwd)/sdk:/sdk" \
+                directmq/protogen
+                
+            - echo Protocol Buffer files generated successfully
+
+    sdk:go:test:
+        desc: Run Go SDK tests
+        silent: true
+        cmds:
+            - echo Running Go SDK tests...
+            - cd ./sdk/go && go test -v ./...
+            - echo Tests done
+
+    spec:build-image:
+        desc: Build the spec runner Docker image
+        silent: true
+        cmds:
+            - echo Building the spec runner Docker image...
+            - docker build -t directmq/spec-runner -f ./spec/Dockerfile .
+            
+    spec:test:
+        desc: Run specification tests in docker container
+        silent: true
+        cmds:
+            - |
+                docker run \
+                --volume "$(pwd):/directmq" \
+                -t \
+                directmq/spec-runner \
+                /bin/sh run-tests.sh
+
