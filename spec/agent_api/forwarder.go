@@ -7,34 +7,72 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type ForwardedMessage struct {
+	FromURL   *url.URL
+	FromAlias string
+
+	ToURL   *url.URL
+	ToAlias string
+
+	Message []byte
+}
 type Forwarder interface {
+	StartWebsocketForwarder() error
+	OnMessage(handler func(message ForwardedMessage))
 	Abort()
-	OnMessage(handler func(message string))
 }
 
 type websocketForwarder struct {
-	from *url.URL
-	to   *url.URL
+	fromURL   *url.URL
+	fromAlias string
+
+	toURL   *url.URL
+	toAlias string
 
 	incomingConn *websocket.Conn
 	outgoingConn *websocket.Conn
 
-	messageHandler func(message string, sender, receiver *url.URL)
+	messageHandler func(message ForwardedMessage)
 	server         *http.Server
+
+	recording []ForwardedMessage
 }
 
-func NewWebsocketForwarder(from, to *url.URL) *websocketForwarder {
+var _ Forwarder = (*websocketForwarder)(nil)
+
+func NewWebsocketForwarder(from *url.URL, fromAlias string, to *url.URL, toAlias string) *websocketForwarder {
 	forwarder := &websocketForwarder{
-		from: from,
-		to:   to,
+		fromURL:   from,
+		fromAlias: fromAlias,
+
+		toURL:   to,
+		toAlias: toAlias,
 
 		incomingConn: nil,
 		outgoingConn: nil,
+
+		recording: make([]ForwardedMessage, 0),
 	}
 
 	forwarder.initWebsocketServer()
 
 	return forwarder
+}
+
+func (f *websocketForwarder) StartWebsocketForwarder() error {
+	f.recording = make([]ForwardedMessage, 0)
+
+	err := f.server.ListenAndServe()
+
+	if err != http.ErrServerClosed {
+		return err
+	}
+
+	return nil
+}
+
+func (f *websocketForwarder) OnMessage(handler func(message ForwardedMessage)) {
+	f.messageHandler = handler
 }
 
 func (f *websocketForwarder) Abort() {
@@ -54,26 +92,12 @@ func (f *websocketForwarder) Abort() {
 	}
 }
 
-func (f *websocketForwarder) OnMessage(handler func(message string, sender, receiver *url.URL)) {
-	f.messageHandler = handler
-}
-
-func (f *websocketForwarder) StartWebsocketForwarder() error {
-	err := f.server.ListenAndServe()
-
-	if err != http.ErrServerClosed {
-		return err
-	}
-
-	return nil
-}
-
 func (f *websocketForwarder) initWebsocketServer() {
 	mux := http.NewServeMux()
-	mux.HandleFunc(f.from.Path, f.createWebsocketHandler())
+	mux.HandleFunc(f.fromURL.Path, f.createWebsocketHandler())
 
 	server := &http.Server{
-		Addr:    f.from.Host,
+		Addr:    f.fromURL.Host,
 		Handler: mux,
 	}
 
@@ -95,15 +119,15 @@ func (f *websocketForwarder) createWebsocketHandler() http.HandlerFunc {
 
 		f.incomingConn = c
 
-		f.outgoingConn, _, err = websocket.DefaultDialer.Dial(f.to.String(), nil)
+		f.outgoingConn, _, err = websocket.DefaultDialer.Dial(f.toURL.String(), nil)
 		if err != nil {
 			panic("unable to dial to the target websocket: " + err.Error())
 		}
 
 		done := make(chan struct{}, 2)
 
-		go f.runForwardingRoutine(f.incomingConn, f.outgoingConn, f.from, f.to, done)
-		go f.runForwardingRoutine(f.outgoingConn, f.incomingConn, f.to, f.from, done)
+		go f.runForwardingRoutine(f.incomingConn, f.outgoingConn, f.fromURL, f.fromAlias, f.toURL, f.toAlias, done)
+		go f.runForwardingRoutine(f.outgoingConn, f.incomingConn, f.toURL, f.toAlias, f.fromURL, f.fromAlias, done)
 
 		<-done
 		<-done
@@ -112,7 +136,12 @@ func (f *websocketForwarder) createWebsocketHandler() http.HandlerFunc {
 	}
 }
 
-func (f *websocketForwarder) runForwardingRoutine(from, to *websocket.Conn, fromURL, toURL *url.URL, done chan struct{}) {
+func (f *websocketForwarder) runForwardingRoutine(
+	from, to *websocket.Conn,
+	fromURL *url.URL, fromAlias string,
+	toURL *url.URL, toAlias string,
+	done chan struct{},
+) {
 	defer func() { done <- struct{}{} }()
 
 	for {
@@ -121,8 +150,20 @@ func (f *websocketForwarder) runForwardingRoutine(from, to *websocket.Conn, from
 			return
 		}
 
+		message := ForwardedMessage{
+			FromURL:   fromURL,
+			FromAlias: fromAlias,
+
+			ToURL:   toURL,
+			ToAlias: toAlias,
+
+			Message: data,
+		}
+
+		f.recording = append(f.recording, message)
+
 		if f.messageHandler != nil {
-			f.messageHandler(string(data), fromURL, toURL)
+			f.messageHandler(message)
 		}
 
 		if err := to.WriteMessage(websocket.TextMessage, data); err != nil {

@@ -39,8 +39,9 @@ type UniversalAgent struct {
 
 var _ Agent = (*UniversalAgent)(nil)
 
-func NewUniversalAgent() *UniversalAgent {
+func NewUniversalAgent(nodeID string) *UniversalAgent {
 	return &UniversalAgent{
+		nodeID:     nodeID,
 		subscribed: make(chan SubscribedNotification, 1),
 		stopped:    make(chan StoppedNotification, 1),
 	}
@@ -189,12 +190,18 @@ func (ua *UniversalAgent) write(cmd interface{}) {
 	}
 }
 
+func (ua *UniversalAgent) GetNodeID() string {
+	return ua.nodeID
+}
+
 ////////////////////
 // Connection API //
 ////////////////////
 
 func (ua *UniversalAgent) Listen(cmd ListenCommand, exec UniversalSpawn) error {
-	ua.nodeID = cmd.AsClientId
+	if cmd.AsClientId != ua.nodeID {
+		panic("listen command must have the same node ID as the agent previously set")
+	}
 
 	if err := ua.spawn(exec); err != nil {
 		return err
@@ -209,7 +216,9 @@ func (ua *UniversalAgent) Listen(cmd ListenCommand, exec UniversalSpawn) error {
 }
 
 func (ua *UniversalAgent) Connect(cmd ConnectCommand, exec UniversalSpawn) error {
-	ua.nodeID = cmd.AsClientId
+	if cmd.AsClientId != ua.nodeID {
+		panic("listen command must have the same node ID as the agent previously set")
+	}
 
 	if err := ua.spawn(exec); err != nil {
 		return err

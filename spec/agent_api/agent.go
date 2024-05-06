@@ -36,4 +36,6 @@ type Agent interface {
 	AgentAPI
 	NativeAPI
 	DiagnosticsAPI
+
+	GetNodeID() string
 }
