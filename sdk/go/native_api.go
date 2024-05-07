@@ -38,7 +38,7 @@ func (n *nativeAPI) Publish(topic string, payload []byte, deliveryStrategy Deliv
 		DeliveryStrategy: deliveryStrategy,
 	}
 
-	n.network.Published(message, n)
+	n.network.Published(message)
 }
 
 func (n *nativeAPI) Subscribe(topic string, handler func(payload []byte)) SubscriptionID {
@@ -65,14 +65,14 @@ func (n *nativeAPI) updateSubscriptions(oldTopics []string) {
 		n.network.Subscribed(SubscribeMessage{
 			DataFrame: n.getInitialDataFrame(),
 			Topic:     topic,
-		}, n)
+		})
 	}
 
 	for _, topic := range topicsToUnsubscribe {
 		n.network.Unsubscribed(UnsubscribeMessage{
 			DataFrame: n.getInitialDataFrame(),
 			Topic:     topic,
-		}, n)
+		})
 	}
 }
 

@@ -32,6 +32,10 @@ func (n *networkEdgeStateConnected) GetSubscribedTopics() []string {
 }
 
 func (n *networkEdgeStateConnected) HandlePublish(publication PublishMessage) (handled bool) {
+	if n.edge.isCurrentEdgeOriginOfFrame(publication.DataFrame) {
+		return false
+	}
+
 	if triggered := n.edge.bridgedNodeSubscriptions.GetTriggeredSubscriptions(publication.Topic); len(triggered) == 0 {
 		return false
 	}
@@ -61,6 +65,10 @@ func (n *networkEdgeStateConnected) HandlePublish(publication PublishMessage) (h
 }
 
 func (n *networkEdgeStateConnected) HandleSubscribe(subscription SubscribeMessage) {
+	if n.edge.isCurrentEdgeOriginOfFrame(subscription.DataFrame) {
+		return
+	}
+
 	subscriptionToForward := SubscribeMessage{
 		DataFrame: n.edge.updateFrame(subscription.DataFrame),
 		Topic:     subscription.Topic,
@@ -77,6 +85,10 @@ func (n *networkEdgeStateConnected) HandleSubscribe(subscription SubscribeMessag
 }
 
 func (n *networkEdgeStateConnected) HandleUnsubscribe(unsubscribe UnsubscribeMessage) {
+	if n.edge.isCurrentEdgeOriginOfFrame(unsubscribe.DataFrame) {
+		return
+	}
+
 	unsubscriptionToForward := UnsubscribeMessage{
 		DataFrame: n.edge.updateFrame(unsubscribe.DataFrame),
 		Topic:     unsubscribe.Topic,
@@ -102,8 +114,11 @@ func (n *networkEdgeStateConnected) HandleTerminateNetwork(terminate TerminateNe
 	})
 
 	if err != nil {
-		n.edge.SetState(&networkEdgeStateDisconnected{n.edge, "Failed to terminate network: " + err.Error(), nil})
+		n.edge.SetState(&networkEdgeStateDisconnected{n.edge, "Failed to terminate network edge: " + err.Error(), nil})
+		return
 	}
+
+	n.edge.SetState(&networkEdgeStateDisconnected{n.edge, terminate.Reason, nil})
 }
 
 /* ProtocolDecoderHandler interface implementation */
@@ -126,11 +141,11 @@ func (n *networkEdgeStateConnected) OnGracefullyClose(message GracefullyCloseMes
 
 func (n *networkEdgeStateConnected) OnTerminateNetwork(message TerminateNetworkMessage) {
 	n.edge.SetState(&networkEdgeStateDisconnected{n.edge, message.Reason, nil})
-	n.edge.network.Terminated(message, n.edge)
+	n.edge.network.Terminated(message)
 }
 
 func (n *networkEdgeStateConnected) OnPublish(message PublishMessage) {
-	n.edge.network.Published(message, n.edge)
+	n.edge.network.Published(message)
 }
 
 func (n *networkEdgeStateConnected) OnSubscribe(message SubscribeMessage) {
@@ -174,14 +189,14 @@ func (n *networkEdgeStateConnected) updateSubscriptions(oldTopics []string, orig
 		n.edge.network.Subscribed(SubscribeMessage{
 			DataFrame: frame,
 			Topic:     topic,
-		}, n.edge)
+		})
 	}
 
 	for _, topic := range topicsToUnsubscribe {
 		n.edge.network.Unsubscribed(UnsubscribeMessage{
 			DataFrame: frame,
 			Topic:     topic,
-		}, n.edge)
+		})
 	}
 }
 

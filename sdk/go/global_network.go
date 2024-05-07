@@ -32,14 +32,10 @@ func (d *globalNetwork) GetAllSubscribedTopics() []string {
 	return unique(topics)
 }
 
-func (d *globalNetwork) Published(message PublishMessage, callingParticipant networkParticipant) {
+func (d *globalNetwork) Published(message PublishMessage) {
 	d.diag.HandlePublish(message)
 
 	for _, participant := range randomOrder(d.participants) {
-		if participant == callingParticipant {
-			continue
-		}
-
 		handled := participant.HandlePublish(message)
 		if message.DeliveryStrategy == AT_MOST_ONCE && handled {
 			return
@@ -47,38 +43,26 @@ func (d *globalNetwork) Published(message PublishMessage, callingParticipant net
 	}
 }
 
-func (d *globalNetwork) Subscribed(message SubscribeMessage, callingParticipant networkParticipant) {
+func (d *globalNetwork) Subscribed(message SubscribeMessage) {
 	d.diag.HandleSubscribe(message)
 
 	for _, participant := range d.participants {
-		if participant == callingParticipant {
-			continue
-		}
-
 		participant.HandleSubscribe(message)
 	}
 }
 
-func (d *globalNetwork) Unsubscribed(message UnsubscribeMessage, callingParticipant networkParticipant) {
+func (d *globalNetwork) Unsubscribed(message UnsubscribeMessage) {
 	d.diag.HandleUnsubscribe(message)
 
 	for _, participant := range d.participants {
-		if participant == callingParticipant {
-			continue
-		}
-
 		participant.HandleUnsubscribe(message)
 	}
 }
 
-func (d *globalNetwork) Terminated(message TerminateNetworkMessage, callingParticipant networkParticipant) {
+func (d *globalNetwork) Terminated(message TerminateNetworkMessage) {
 	d.diag.HandleTerminateNetwork(message)
 
 	for _, participant := range d.participants {
-		if participant == callingParticipant {
-			continue
-		}
-
 		participant.HandleTerminateNetwork(message)
 	}
 }

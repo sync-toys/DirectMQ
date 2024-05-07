@@ -35,7 +35,7 @@ func (n *networkEdgeStateDisconnected) revokeAllBridgedNodeSubscriptionsFromNetw
 			Topic: topic,
 		}
 
-		n.edge.network.Unsubscribed(unsubscribeMessage, n.edge)
+		n.edge.network.Unsubscribed(unsubscribeMessage)
 	}
 
 	n.edge.bridgedNodeSubscriptions = newSubscriptionList[struct{}]()

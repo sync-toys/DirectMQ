@@ -157,7 +157,7 @@ func (n *networkEdge) shouldForwardMessage(frame DataFrame) bool {
 				Traversed: []string{},
 			},
 			Reason: "Loop detected: " + strings.Join(frame.Traversed, " -> "),
-		}, n)
+		})
 	}
 
 	return !loopDetected && frame.TTL > 0
@@ -181,4 +181,12 @@ func (n *networkEdge) updateFrame(frame DataFrame) DataFrame {
 		TTL:       frame.TTL - 1,
 		Traversed: append(frame.Traversed, n.network.config.HostID),
 	}
+}
+
+func (n *networkEdge) isCurrentEdgeOriginOfFrame(frame DataFrame) bool {
+	if len(frame.Traversed) == 0 {
+		return false
+	}
+
+	return frame.Traversed[len(frame.Traversed)-1] == n.info.BridgedNodeID
 }

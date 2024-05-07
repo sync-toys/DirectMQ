@@ -153,8 +153,7 @@ func (n *networkEdgeStateConnecting) OnGracefullyClose(message GracefullyCloseMe
 }
 
 func (n *networkEdgeStateConnecting) OnTerminateNetwork(message TerminateNetworkMessage) {
-	n.edge.SetState(&networkEdgeStateDisconnected{n.edge, "Network terminated", nil})
-	n.edge.network.Terminated(message, n.edge)
+	n.edge.network.Terminated(message)
 }
 
 func (n *networkEdgeStateConnecting) OnPublish(message PublishMessage) {
