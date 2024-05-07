@@ -1,0 +1,109 @@
+[
+    {
+        "From": "salve",
+        "To": "master",
+        "Message": {
+            "supportedProtocolVersions": {
+                "supportedProtocolVersions": [
+                    1
+                ]
+            },
+            "traversed": [
+                "salve"
+            ],
+            "ttl": 2
+        }
+    },
+    {
+        "From": "master",
+        "To": "salve",
+        "Message": {
+            "supportedProtocolVersions": {
+                "supportedProtocolVersions": [
+                    1
+                ]
+            },
+            "traversed": [
+                "salve",
+                "master"
+            ],
+            "ttl": 1
+        }
+    },
+    {
+        "From": "salve",
+        "To": "master",
+        "Message": {
+            "initConnection": {},
+            "traversed": [
+                "salve"
+            ],
+            "ttl": 1
+        }
+    },
+    {
+        "From": "master",
+        "To": "salve",
+        "Message": {
+            "connectionAccepted": {},
+            "traversed": [
+                "master"
+            ],
+            "ttl": 1
+        }
+    },
+    {
+        "From": "master",
+        "To": "salve",
+        "Message": {
+            "subscribe": {
+                "topic": "test"
+            },
+            "traversed": [
+                "master"
+            ],
+            "ttl": 31
+        }
+    },
+    {
+        "From": "salve",
+        "To": "master",
+        "Message": {
+            "subscribe": {
+                "topic": "test"
+            },
+            "traversed": [
+                "salve"
+            ],
+            "ttl": 31
+        }
+    },
+    {
+        "From": "master",
+        "To": "salve",
+        "Message": {
+            "publish": {
+                "payload": "SGVsbG8sIFdvcmxkISAobWFzdGVyKQ==",
+                "topic": "test"
+            },
+            "traversed": [
+                "master"
+            ],
+            "ttl": 31
+        }
+    },
+    {
+        "From": "salve",
+        "To": "master",
+        "Message": {
+            "publish": {
+                "payload": "SGVsbG8sIFdvcmxkISAoc2FsdmUp",
+                "topic": "test"
+            },
+            "traversed": [
+                "salve"
+            ],
+            "ttl": 31
+        }
+    }
+]
