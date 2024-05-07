@@ -7,6 +7,7 @@ WORKDIR /directmq
 
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
 RUN go install github.com/onsi/ginkgo/v2/ginkgo@latest
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 WORKDIR /directmq/sdk/go
 COPY sdk/go/go.mod sdk/go/go.sum ./

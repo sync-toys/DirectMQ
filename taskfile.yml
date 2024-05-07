@@ -20,12 +20,14 @@ tasks:
         cmds:
             - echo Generating output from Protocol Buffer files...
 
+            - docker rm -f DirectMQ.Protogen || true
             - |
                 docker run \
                 --volume "$(pwd)/proto:/protocols" \
                 --volume "$(pwd)/sdk:/sdk" \
+                --name DirectMQ.Protogen \
                 directmq/protogen
-                
+
             - echo Protocol Buffer files generated successfully
 
     sdk:go:test:
@@ -42,15 +44,22 @@ tasks:
         cmds:
             - echo Building the spec runner Docker image...
             - docker build -t directmq/spec-runner -f ./spec/Dockerfile .
-            
+
     spec:test:
         desc: Run specification tests in docker container
         silent: true
         cmds:
+            - echo Removing any existing DirectMQ.Spec container instance...
+            - docker rm -f DirectMQ.Spec || true
+
+            - echo Running specification tests...
             - |
                 docker run \
                 --volume "$(pwd):/directmq" \
-                -t \
+                -t --name DirectMQ.Spec \
+                --network=bridge -p 2345:2345 \
                 directmq/spec-runner \
                 /bin/sh run-tests.sh
+
+            - echo Specification tests done
 
