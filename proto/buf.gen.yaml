@@ -6,5 +6,5 @@ plugins:
 #   - plugin: es
 #     opt: target=ts
 #     out: /sdk/ts
-#   - plugin: nanopb
-#     out: /sdk/cpp
+  - plugin: nanopb
+    out: /sdk/cpp
