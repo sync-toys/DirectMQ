@@ -9,7 +9,11 @@ import (
 
 type RecordingsLogger func(message []byte, fromNode, toNode string)
 
+const FORWARD_TO_RANDOM_PORT = 0
+
 type NodesCommunicationSpyConfig struct {
+	ForwardToPort int
+
 	LogAToB bool
 	LogBToA bool
 
@@ -31,6 +35,11 @@ type NodesCommunicationSpy struct {
 }
 
 func NewNodesCommunicationSpy(a dmqspecagent.Agent, b dmqspecagent.Agent, config NodesCommunicationSpyConfig) *NodesCommunicationSpy {
+	forwardToPort := config.ForwardToPort
+	if forwardToPort == FORWARD_TO_RANDOM_PORT {
+		forwardToPort = getFreeTestingPort()
+	}
+
 	fromURL := &url.URL{
 		Scheme: "ws",
 		Host:   "localhost:" + strconv.Itoa(getFreeTestingPort()),
@@ -39,7 +48,7 @@ func NewNodesCommunicationSpy(a dmqspecagent.Agent, b dmqspecagent.Agent, config
 
 	toURL := &url.URL{
 		Scheme: "ws",
-		Host:   "localhost:" + strconv.Itoa(getFreeTestingPort()),
+		Host:   "localhost:" + strconv.Itoa(forwardToPort),
 		Path:   "/",
 	}
 

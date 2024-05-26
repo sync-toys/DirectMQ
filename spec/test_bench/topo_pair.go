@@ -1,9 +1,10 @@
 package testbench
 
-import dmqspecagent "github.com/sync-toys/DirectMQ/spec/agent_api"
+import (
+	"time"
 
-type AgentLogger func(log string, nodeID string)
-type BenchLogger func(log string)
+	dmqspecagent "github.com/sync-toys/DirectMQ/spec/agent_api"
+)
 
 type PairTopoTestBenchConfig struct {
 	MasterSpawn dmqspecagent.UniversalSpawn
@@ -49,6 +50,8 @@ type PairTopoTestBench struct {
 
 	alreadyStarted bool
 	alreadyStopped bool
+
+	onBenchUp func()
 }
 
 func NewPairTopoTestBench(config PairTopoTestBenchTestFrameworkIntegration) *PairTopoTestBench {
@@ -99,51 +102,92 @@ func (t *PairTopoTestBench) Start() {
 	t.benchLog("starting spy")
 	go t.masterSalveSpy.Start()
 
-	t.benchLog("spawning master in listening mode")
-	t.Master.Listen(
-		dmqspecagent.ListenCommand{
-			TTL:            t.config.MasterTTL,
-			Address:        t.masterSalveSpy.ToURL.String(),
-			AsClientId:     t.Master.GetNodeID(),
-			MaxMessageSize: t.config.MasterMaxMessageSize,
-		},
-		t.config.MasterSpawn,
-	)
+	t.benchLog("spawning master")
+	t.Master.Run(t.config.MasterSpawn, dmqspecagent.SetupCommand{
+		TTL:            t.config.MasterTTL,
+		MaxMessageSize: t.config.MasterMaxMessageSize,
+		NodeID:         t.config.MasterSpawn.NodeID,
+	})
+
+	t.benchLog("spawning salve")
+	t.Salve.Run(t.config.SalveSpawn, dmqspecagent.SetupCommand{
+		TTL:            t.config.SalveTTL,
+		MaxMessageSize: t.config.SalveMaxMessageSize,
+		NodeID:         t.config.SalveSpawn.NodeID,
+	})
 
 	t.benchLog("waiting for master to be ready")
 	<-t.masterReady
 
-	t.benchLog("spawning salve in connecting mode")
-	t.Salve.Connect(
-		dmqspecagent.ConnectCommand{
-			TTL:            t.config.SalveTTL,
-			Address:        t.masterSalveSpy.FromURL.String(),
-			AsClientId:     t.Salve.GetNodeID(),
-			MaxMessageSize: t.config.SalveMaxMessageSize,
-		},
-		t.config.SalveSpawn,
-	)
-
 	t.benchLog("waiting for salve to be ready")
 	<-t.salveReady
+
+	if t.onBenchUp != nil {
+		t.benchLog("calling onBenchUp callback")
+		t.onBenchUp()
+	}
+
+	t.benchLog("listening on master")
+	t.Master.Listen(
+		dmqspecagent.ListenCommand{
+			Address: t.masterSalveSpy.ToURL.String(),
+		},
+	)
+
+	t.benchLog("connecting from salve")
+	t.Salve.Connect(
+		dmqspecagent.ConnectCommand{
+			Address: t.masterSalveSpy.FromURL.String(),
+		},
+	)
 
 	t.benchLog("waiting for salve to connect")
 	<-t.salveConnected
 
 	t.benchLog("waiting for master to connect")
 	<-t.masterConnected
+
+	t.benchLog("bench ready")
 }
 
 func (t *PairTopoTestBench) Stop(reason string) {
 	defer t.forceCleanUpTestBenchOnPanic()
 
 	if t.alreadyStopped {
-		panic("test bench already stopped")
+		t.benchLog("test bench already stopped, ignoring stop request")
+		return
 	}
 
 	t.benchLog("stopping test bench")
 	t.alreadyStopped = true
 
+	timeout := 10 * time.Second
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	done := make(chan struct{})
+	go func() {
+		t.stopAllServices(reason)
+		close(done)
+	}()
+
+	select {
+	case <-timer.C:
+		panic("test bench stop timeout")
+	case <-done:
+		return
+	}
+}
+
+func (t *PairTopoTestBench) Stopped() bool {
+	return t.alreadyStopped
+}
+
+func (t *PairTopoTestBench) OnBenchUp(callback func()) {
+	t.onBenchUp = callback
+}
+
+func (t *PairTopoTestBench) stopAllServices(reason string) {
 	t.benchLog("gracefully stopping master agent")
 	t.Master.Stop(dmqspecagent.StopCommand{Reason: reason})
 
@@ -185,6 +229,10 @@ func (t *PairTopoTestBench) configureMaster() {
 			t.config.AgentLogger(log, t.Master.GetNodeID())
 		}
 	})
+
+	t.Master.OnFatal(func(fatal dmqspecagent.FatalNotification) {
+		t.config.AgentLogger("FATAL: "+fatal.Err, t.Master.GetNodeID())
+	})
 }
 
 func (t *PairTopoTestBench) configureSalve() {
@@ -204,6 +252,10 @@ func (t *PairTopoTestBench) configureSalve() {
 		if !t.config.DisableAllLogs && t.config.LogSalveLogs {
 			t.config.AgentLogger(log, t.Salve.GetNodeID())
 		}
+	})
+
+	t.Salve.OnFatal(func(fatal dmqspecagent.FatalNotification) {
+		t.config.AgentLogger("FATAL: "+fatal.Err, t.Master.GetNodeID())
 	})
 }
 
@@ -242,7 +294,7 @@ func (t *PairTopoTestBench) forceCleanUpTestBenchOnPanic() {
 		t.masterSalveSpy.Stop()
 	}
 
-	t.benchLog("test bench cleaned up, forwarding panic")
+	t.benchLog("test bench cleaned up, forwarding panic: " + r.(string))
 	panic(r)
 }
 
@@ -257,12 +309,20 @@ func validatePairTopoTestBenchConfig(config PairTopoTestBenchTestFrameworkIntegr
 		panic("Master and salve node IDs must be different")
 	}
 
-	if config.MasterTTL < 0 {
-		panic("Master TTL must be greater than or equal to 0")
+	if config.MasterTTL <= 0 {
+		panic("Master TTL must be greater than 0")
 	}
 
-	if config.SalveTTL < 0 {
-		panic("Salve TTL must be greater than or equal to 0")
+	if config.SalveTTL <= 0 {
+		panic("Salve TTL must be greater than 0")
+	}
+
+	if config.MasterMaxMessageSize < 0 {
+		panic("Master max message size must be greater than or equal to 0")
+	}
+
+	if config.SalveMaxMessageSize < 0 {
+		panic("Salve max message size must be greater than or equal to 0")
 	}
 
 	if config.AgentLogger == nil {
