@@ -7,4 +7,4 @@ plugins:
 #     opt: target=ts
 #     out: /sdk/ts
   - plugin: nanopb
-    out: /sdk/cpp
+    out: /sdk/cpp/protocol
