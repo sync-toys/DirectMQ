@@ -170,7 +170,7 @@ func (ua *UniversalAgent) handleIncomingNotification(n UniversalNotification) {
 
 func (ua *UniversalAgent) write(cmd interface{}) {
 	if ua.cmd == nil {
-		panic("Agent process not available")
+		panic("Agent " + ua.nodeID + " process not available")
 	}
 
 	if ua.cmd.ProcessState != nil && ua.cmd.ProcessState.Exited() {
@@ -198,11 +198,7 @@ func (ua *UniversalAgent) GetNodeID() string {
 // Connection API //
 ////////////////////
 
-func (ua *UniversalAgent) Listen(cmd ListenCommand, exec UniversalSpawn) error {
-	if cmd.AsClientId != ua.nodeID {
-		panic("listen command must have the same node ID as the agent previously set")
-	}
-
+func (ua *UniversalAgent) Run(exec UniversalSpawn, setup SetupCommand) error {
 	if err := ua.spawn(exec); err != nil {
 		return err
 	}
@@ -210,26 +206,17 @@ func (ua *UniversalAgent) Listen(cmd ListenCommand, exec UniversalSpawn) error {
 	go ua.startErrorLoop()
 	go ua.startNotificationLoop()
 
-	ua.write(UniversalCommand{Listen: &cmd})
+	ua.write(UniversalCommand{Setup: &setup})
 
 	return nil
 }
 
-func (ua *UniversalAgent) Connect(cmd ConnectCommand, exec UniversalSpawn) error {
-	if cmd.AsClientId != ua.nodeID {
-		panic("listen command must have the same node ID as the agent previously set")
-	}
+func (ua *UniversalAgent) Listen(cmd ListenCommand) {
+	ua.write(UniversalCommand{Listen: &cmd})
+}
 
-	if err := ua.spawn(exec); err != nil {
-		return err
-	}
-
-	go ua.startErrorLoop()
-	go ua.startNotificationLoop()
-
+func (ua *UniversalAgent) Connect(cmd ConnectCommand) {
 	ua.write(UniversalCommand{Connect: &cmd})
-
-	return nil
 }
 
 func (ua *UniversalAgent) Stop(cmd StopCommand) {

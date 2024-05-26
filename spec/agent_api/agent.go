@@ -3,8 +3,9 @@ package dmqspecagent
 import directmq "github.com/sync-toys/DirectMQ/sdk/go"
 
 type AgentConnectionAPI interface {
-	Listen(ListenCommand, UniversalSpawn) error
-	Connect(ConnectCommand, UniversalSpawn) error
+	Run(UniversalSpawn, SetupCommand) error
+	Listen(ListenCommand)
+	Connect(ConnectCommand)
 	Stop(StopCommand)
 	Kill()
 }

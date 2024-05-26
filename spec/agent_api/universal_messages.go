@@ -4,6 +4,7 @@ import directmq "github.com/sync-toys/DirectMQ/sdk/go"
 
 type UniversalCommand struct {
 	// Connection API
+	Setup   *SetupCommand
 	Listen  *ListenCommand
 	Connect *ConnectCommand
 	Stop    *StopCommand
@@ -33,18 +34,18 @@ type UniversalNotification struct {
 
 // Connection API
 
-type ListenCommand struct {
+type SetupCommand struct {
 	TTL            int32
-	Address        string
-	AsClientId     string
+	NodeID         string
 	MaxMessageSize uint64
 }
 
+type ListenCommand struct {
+	Address string
+}
+
 type ConnectCommand struct {
-	TTL            int32
-	Address        string
-	AsClientId     string
-	MaxMessageSize uint64
+	Address string
 }
 
 type StopCommand struct {

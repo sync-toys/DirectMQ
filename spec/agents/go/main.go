@@ -39,6 +39,10 @@ func startCommandLoop() {
 }
 
 func handleIncomingCommand(cmd dmqspecagent.UniversalCommand) {
+	if cmd.Setup != nil {
+		handleSetupCommand(*cmd.Setup)
+	}
+
 	if cmd.Listen != nil {
 		handleListenCommand(*cmd.Listen)
 	}
@@ -64,18 +68,25 @@ func handleIncomingCommand(cmd dmqspecagent.UniversalCommand) {
 	}
 }
 
-func handleListenCommand(cmd dmqspecagent.ListenCommand) {
+func handleSetupCommand(cmd dmqspecagent.SetupCommand) {
+	log("Setting up DirectMQ node")
+
 	node = directmq.NewNetworkNode(
 		directmq.NetworkNodeConfig{
-			HostID:                     cmd.AsClientId,
+			HostID:                     cmd.NodeID,
 			HostTTL:                    directmq.TTL(cmd.TTL),
 			HostMaxIncomingMessageSize: cmd.MaxMessageSize,
 		},
-		directmq.NewProtobufJSONProtocol())
+		directmq.NewProtobufJSONProtocol(),
+	)
 
 	registerDiagnosticsHandlers()
 
-	log("Listening as server: " + cmd.AsClientId)
+	log("Setup complete")
+}
+
+func handleListenCommand(cmd dmqspecagent.ListenCommand) {
+	log("Listening as server at " + cmd.Address)
 
 	u, err := url.Parse(cmd.Address)
 	if err != nil {
@@ -93,18 +104,7 @@ func handleListenCommand(cmd dmqspecagent.ListenCommand) {
 }
 
 func handleConnectCommand(cmd dmqspecagent.ConnectCommand) {
-	node = directmq.NewNetworkNode(
-		directmq.NetworkNodeConfig{
-			HostID:                     cmd.AsClientId,
-			HostTTL:                    directmq.TTL(cmd.TTL),
-			HostMaxIncomingMessageSize: cmd.MaxMessageSize,
-		},
-		directmq.NewProtobufJSONProtocol(),
-	)
-
-	registerDiagnosticsHandlers()
-
-	log("Connecting as client: " + cmd.AsClientId)
+	log("Connecting as client to " + cmd.Address)
 
 	u, err := url.Parse(cmd.Address)
 	if err != nil {
