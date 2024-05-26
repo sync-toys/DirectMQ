@@ -18,7 +18,7 @@ var _ = Describe("nativeAPI", func() {
 	getInitialMessageDataFrame := func() DataFrame {
 		return DataFrame{
 			TTL:       int32(networkConfig.HostTTL),
-			Traversed: []string{networkConfig.HostID},
+			Traversed: []string{ /* empty when no hops */ },
 		}
 	}
 

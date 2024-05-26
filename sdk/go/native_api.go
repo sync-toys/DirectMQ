@@ -89,6 +89,14 @@ func (n *nativeAPI) GetSubscribedTopics() []string {
 	return n.subscriptions.GetOnlyTopLevelSubscribedTopics()
 }
 
+func (n *nativeAPI) WillHandleTopic(topic string) bool {
+	return n.subscriptions.WillHandleTopic(topic)
+}
+
+func (n *nativeAPI) IsOriginOfFrame(frame DataFrame) bool {
+	return len(frame.Traversed) == 0
+}
+
 func (n *nativeAPI) HandlePublish(publication PublishMessage) (handled bool) {
 	subscribers := randomOrder(n.subscriptions.GetTriggeredSubscriptions(publication.Topic))
 	if len(subscribers) == 0 {

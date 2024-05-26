@@ -47,6 +47,14 @@ func (n *networkEdgeStateDisconnected) GetSubscribedTopics() []string {
 	return []string{}
 }
 
+func (n *networkEdgeStateDisconnected) WillHandleTopic(topic string) bool {
+	return false
+}
+
+func (n *networkEdgeStateDisconnected) IsOriginOfFrame(frame DataFrame) bool {
+	panic("this method should not be used, use the networkEdge.IsOriginOfFrame method instead")
+}
+
 func (n *networkEdgeStateDisconnected) HandlePublish(publication PublishMessage) (handled bool) {
 	// we are disconnected, we cannot handle any publications
 	return false

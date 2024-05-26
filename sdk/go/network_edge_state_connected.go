@@ -16,7 +16,7 @@ func (n *networkEdgeStateConnected) OnSet() {
 }
 
 func (n *networkEdgeStateConnected) exchangeAllNodeSubscriptions() {
-	for _, topic := range n.edge.GetSubscribedTopics() {
+	for _, topic := range n.edge.network.GetAllSubscribedTopics() {
 		err := n.edge.protocol.Subscribe(SubscribeMessage{Topic: topic})
 		if err != nil {
 			n.edge.SetState(&networkEdgeStateDisconnecting{n.edge, "Failed to exchange subscriptions: " + err.Error()})
@@ -31,8 +31,16 @@ func (n *networkEdgeStateConnected) GetSubscribedTopics() []string {
 	return n.edge.bridgedNodeSubscriptions.GetOnlyTopLevelSubscribedTopics()
 }
 
+func (n *networkEdgeStateConnected) WillHandleTopic(topic string) bool {
+	return n.edge.bridgedNodeSubscriptions.WillHandleTopic(topic)
+}
+
+func (n *networkEdgeStateConnected) IsOriginOfFrame(frame DataFrame) bool {
+	panic("this method should not be used, use the networkEdge.IsOriginOfFrame method instead")
+}
+
 func (n *networkEdgeStateConnected) HandlePublish(publication PublishMessage) (handled bool) {
-	if n.edge.isCurrentEdgeOriginOfFrame(publication.DataFrame) {
+	if n.edge.IsOriginOfFrame(publication.DataFrame) {
 		return false
 	}
 
@@ -65,7 +73,7 @@ func (n *networkEdgeStateConnected) HandlePublish(publication PublishMessage) (h
 }
 
 func (n *networkEdgeStateConnected) HandleSubscribe(subscription SubscribeMessage) {
-	if n.edge.isCurrentEdgeOriginOfFrame(subscription.DataFrame) {
+	if n.edge.IsOriginOfFrame(subscription.DataFrame) {
 		return
 	}
 
@@ -85,7 +93,7 @@ func (n *networkEdgeStateConnected) HandleSubscribe(subscription SubscribeMessag
 }
 
 func (n *networkEdgeStateConnected) HandleUnsubscribe(unsubscribe UnsubscribeMessage) {
-	if n.edge.isCurrentEdgeOriginOfFrame(unsubscribe.DataFrame) {
+	if n.edge.IsOriginOfFrame(unsubscribe.DataFrame) {
 		return
 	}
 
@@ -177,13 +185,8 @@ func (n *networkEdgeStateConnected) findSubscriptionUsingTopicPattern(topic stri
 	return 0, false
 }
 
-func (n *networkEdgeStateConnected) updateSubscriptions(oldTopics []string, originalFrame DataFrame) {
+func (n *networkEdgeStateConnected) updateSubscriptions(oldTopics []string, frame DataFrame) {
 	topicsToUnsubscribe, topicsToSubscribe := GetDeduplicatedOverlappingTopicsDiff(oldTopics, n.edge.bridgedNodeSubscriptions.GetOnlyTopLevelSubscribedTopics())
-
-	frame := DataFrame{
-		TTL:       originalFrame.TTL - 1,
-		Traversed: originalFrame.Traversed,
-	}
 
 	for _, topic := range topicsToSubscribe {
 		n.edge.network.Subscribed(SubscribeMessage{

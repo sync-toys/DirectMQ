@@ -91,6 +91,18 @@ func (n *networkEdge) GetSubscribedTopics() []string {
 	return n.state.GetSubscribedTopics()
 }
 
+func (n *networkEdge) WillHandleTopic(topic string) bool {
+	return n.state.WillHandleTopic(topic)
+}
+
+func (n *networkEdge) IsOriginOfFrame(frame DataFrame) bool {
+	if len(frame.Traversed) == 0 {
+		return false
+	}
+
+	return frame.Traversed[len(frame.Traversed)-1] == n.info.BridgedNodeID
+}
+
 func (n *networkEdge) HandlePublish(publication PublishMessage) (handled bool) {
 	return n.state.HandlePublish(publication)
 }
@@ -177,16 +189,12 @@ func (n *networkEdge) checkForNetworkLoops(frame DataFrame) bool {
 }
 
 func (n *networkEdge) updateFrame(frame DataFrame) DataFrame {
+	if len(frame.Traversed) > 0 && frame.Traversed[len(frame.Traversed)-1] == n.network.config.HostID {
+		return frame
+	}
+
 	return DataFrame{
 		TTL:       frame.TTL - 1,
 		Traversed: append(frame.Traversed, n.network.config.HostID),
 	}
-}
-
-func (n *networkEdge) isCurrentEdgeOriginOfFrame(frame DataFrame) bool {
-	if len(frame.Traversed) == 0 {
-		return false
-	}
-
-	return frame.Traversed[len(frame.Traversed)-1] == n.info.BridgedNodeID
 }

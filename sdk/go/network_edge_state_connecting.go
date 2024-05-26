@@ -38,6 +38,14 @@ func (n *networkEdgeStateConnecting) GetSubscribedTopics() []string {
 	return []string{}
 }
 
+func (n *networkEdgeStateConnecting) WillHandleTopic(topic string) bool {
+	return false
+}
+
+func (n *networkEdgeStateConnecting) IsOriginOfFrame(frame DataFrame) bool {
+	panic("this method should not be used, use the networkEdge.IsOriginOfFrame method instead")
+}
+
 func (n *networkEdgeStateConnecting) HandlePublish(publication PublishMessage) (handled bool) {
 	// we are connecting, we cannot handle any publications
 	return false

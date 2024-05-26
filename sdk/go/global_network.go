@@ -2,6 +2,8 @@ package directmq
 
 type networkParticipant interface {
 	GetSubscribedTopics() []string
+	WillHandleTopic(topic string) bool
+	IsOriginOfFrame(message DataFrame) bool
 
 	HandlePublish(publication PublishMessage) (handled bool)
 	HandleSubscribe(subscription SubscribeMessage)
@@ -32,6 +34,19 @@ func (d *globalNetwork) GetAllSubscribedTopics() []string {
 	return unique(topics)
 }
 
+func (d *globalNetwork) getSubscribedTopicsExcludingOriginOfMessage(frame DataFrame) []string {
+	topics := make([]string, 0)
+	for _, participant := range d.participants {
+		if participant.IsOriginOfFrame(frame) {
+			continue
+		}
+
+		topics = append(topics, participant.GetSubscribedTopics()...)
+	}
+
+	return unique(topics)
+}
+
 func (d *globalNetwork) Published(message PublishMessage) {
 	d.diag.HandlePublish(message)
 
@@ -46,13 +61,48 @@ func (d *globalNetwork) Published(message PublishMessage) {
 func (d *globalNetwork) Subscribed(message SubscribeMessage) {
 	d.diag.HandleSubscribe(message)
 
+	// todo: we need to check if every edge has given topic subscribed
+	topLevelSubscriptions := d.getSubscribedTopicsExcludingOriginOfMessage(message.DataFrame)
+
 	for _, participant := range d.participants {
 		participant.HandleSubscribe(message)
+	}
+
+	if len(message.DataFrame.Traversed) == 0 {
+		// we are skipping the unsubscribe synchronization part
+		// because current node is origin of the message
+		// and synchronization will be done by native api itself
+		return
+	}
+
+	updatedTopLevelSubscriptions := d.GetAllSubscribedTopics()
+	topicsToUnsubscribe, _ := GetDeduplicatedOverlappingTopicsDiff(topLevelSubscriptions, updatedTopLevelSubscriptions)
+
+	for _, topic := range topicsToUnsubscribe {
+		message := UnsubscribeMessage{
+			DataFrame: message.DataFrame,
+			Topic:     topic,
+		}
+
+		for _, participant := range d.participants {
+			if participant.WillHandleTopic(message.Topic) {
+				continue
+			}
+
+			participant.HandleUnsubscribe(message)
+		}
 	}
 }
 
 func (d *globalNetwork) Unsubscribed(message UnsubscribeMessage) {
 	d.diag.HandleUnsubscribe(message)
+
+	// todo: we need to check if every edge has given topic unsubscribed
+	for _, participant := range d.participants {
+		if participant.WillHandleTopic(message.Topic) {
+			return
+		}
+	}
 
 	for _, participant := range d.participants {
 		participant.HandleUnsubscribe(message)

@@ -27,6 +27,14 @@ func (d *diagnosticsAPI) GetSubscribedTopics() []string {
 	return []string{}
 }
 
+func (d *diagnosticsAPI) WillHandleTopic(topic string) bool {
+	return false
+}
+
+func (d *diagnosticsAPI) IsOriginOfFrame(message DataFrame) bool {
+	return false
+}
+
 func (d *diagnosticsAPI) HandleConnectionEstablished(bridgedNodeID string, portal Portal) {
 	if d.onConnectionEstablished != nil {
 		d.onConnectionEstablished(bridgedNodeID, portal)

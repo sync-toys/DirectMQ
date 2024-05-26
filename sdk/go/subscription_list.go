@@ -72,6 +72,16 @@ func (l *subscriptionList[THandler]) GetTriggeredSubscriptions(topic string) []s
 	return subscriptions
 }
 
+func (l *subscriptionList[THandler]) WillHandleTopic(topic string) bool {
+	for _, subscription := range l.subscriptions {
+		if MatchTopicPattern(subscription.TopicPattern, topic) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (l *subscriptionList[THandler]) GetSubscriptions() []subscription[THandler] {
 	subscriptions := make([]subscription[THandler], len(l.subscriptions))
 	copy(subscriptions, l.subscriptions)
