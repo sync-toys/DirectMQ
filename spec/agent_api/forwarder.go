@@ -3,6 +3,8 @@ package dmqspecagent
 import (
 	"net/http"
 	"net/url"
+	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -35,7 +37,7 @@ type websocketForwarder struct {
 	messageHandler func(message ForwardedMessage)
 	server         *http.Server
 
-	recording []ForwardedMessage
+	abortMutex sync.Mutex
 }
 
 var _ Forwarder = (*websocketForwarder)(nil)
@@ -51,7 +53,7 @@ func NewWebsocketForwarder(from *url.URL, fromAlias string, to *url.URL, toAlias
 		incomingConn: nil,
 		outgoingConn: nil,
 
-		recording: make([]ForwardedMessage, 0),
+		abortMutex: sync.Mutex{},
 	}
 
 	forwarder.initWebsocketServer()
@@ -60,8 +62,6 @@ func NewWebsocketForwarder(from *url.URL, fromAlias string, to *url.URL, toAlias
 }
 
 func (f *websocketForwarder) StartWebsocketForwarder() error {
-	f.recording = make([]ForwardedMessage, 0)
-
 	err := f.server.ListenAndServe()
 
 	if err != http.ErrServerClosed {
@@ -76,6 +76,9 @@ func (f *websocketForwarder) OnMessage(handler func(message ForwardedMessage)) {
 }
 
 func (f *websocketForwarder) Abort() {
+	f.abortMutex.Lock()
+	defer f.abortMutex.Unlock()
+
 	f.server.Close()
 	msg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")
 
@@ -119,10 +122,14 @@ func (f *websocketForwarder) createWebsocketHandler() http.HandlerFunc {
 
 		f.incomingConn = c
 
-		f.outgoingConn, _, err = websocket.DefaultDialer.Dial(f.toURL.String(), nil)
-		if err != nil {
-			panic("unable to dial to the target websocket: " + err.Error())
-		}
+		retry(5, 100*time.Millisecond, func() struct{} {
+			f.outgoingConn, _, err = websocket.DefaultDialer.Dial(f.toURL.String(), nil)
+			if err != nil {
+				panic("unable to dial to the target websocket: " + err.Error())
+			}
+
+			return struct{}{}
+		})
 
 		done := make(chan struct{}, 2)
 
@@ -159,8 +166,6 @@ func (f *websocketForwarder) runForwardingRoutine(
 
 			Message: data,
 		}
-
-		f.recording = append(f.recording, message)
 
 		if f.messageHandler != nil {
 			f.messageHandler(message)
