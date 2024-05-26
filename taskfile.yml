@@ -52,6 +52,9 @@ tasks:
             - echo Removing any existing DirectMQ.Spec container instance...
             - docker rm -f DirectMQ.Spec || true
 
+            - defer: docker rm -f DirectMQ.Spec || true
+            - defer: echo Cleaning up...
+
             - echo Running specification tests...
             - |
                 docker run \
