@@ -20,14 +20,14 @@ var _ = Describe("Topic pattern util", func() {
 			Entry("multi level topic", "topic/level", true),
 			Entry("multi level topic with wildcard", "topic/level/*", true),
 			Entry("multi level topic with wildcard in the middle", "topic/*/somewhere", true),
+			Entry("allows single level wildcard only", "*", true),
+			Entry("allows super wildcard only", "**", true),
 			Entry("empty topic", "", false),
 			Entry("topic without any characters but space", " ", false),
 			Entry("topic without any characters but separator", "/", false),
 			Entry("topic without any characters but separators", "//", false),
 			Entry("topic that starts with a separator", "/topic", false),
 			Entry("topic that ends with a separator", "topic/", false),
-			Entry("allows single level wildcard only", "*", false),
-			Entry("allows super wildcard only", "**", false),
 			Entry("topic with empty subtopic segment", "topic//subtopic", false),
 		)
 
@@ -69,6 +69,12 @@ var _ = Describe("Topic pattern util", func() {
 
 			Entry(describe("multi level with mixed wildcards and super wildcards"), "topic/*/sublevel/**", "topic/level/sublevel/other", true),
 			Entry(describe("multi level with mixed wildcards and super wildcards"), "topic/*/sublevel/**", "topic/level1/level2/sublevel/other/levels", false),
+
+			Entry(describe("wildcard only"), "*", "topic", true),
+			Entry(describe("wildcard only"), "*", "topic/level", false),
+
+			Entry(describe("super wildcard only"), "**", "topic", true),
+			Entry(describe("super wildcard only"), "**", "topic/level", true),
 		)
 	})
 

@@ -23,7 +23,6 @@ func IsCorrectTopicPattern(pattern string) bool {
 	}
 
 	patternWithoutOperatorsReplacer := strings.NewReplacer(
-		"*", "",
 		"/", "",
 	)
 
