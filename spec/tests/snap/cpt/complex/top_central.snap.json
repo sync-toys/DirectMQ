@@ -1,0 +1,82 @@
+[
+    {
+        "From": "top",
+        "To": "central",
+        "Message": {
+            "supportedProtocolVersions": {
+                "supportedProtocolVersions": [
+                    1
+                ]
+            },
+            "traversed": [
+                "top"
+            ],
+            "ttl": 2
+        }
+    },
+    {
+        "From": "central",
+        "To": "top",
+        "Message": {
+            "supportedProtocolVersions": {
+                "supportedProtocolVersions": [
+                    1
+                ]
+            },
+            "traversed": [
+                "top",
+                "central"
+            ],
+            "ttl": 1
+        }
+    },
+    {
+        "From": "top",
+        "To": "central",
+        "Message": {
+            "initConnection": {},
+            "traversed": [
+                "top"
+            ],
+            "ttl": 1
+        }
+    },
+    {
+        "From": "central",
+        "To": "top",
+        "Message": {
+            "connectionAccepted": {},
+            "traversed": [
+                "central"
+            ],
+            "ttl": 1
+        }
+    },
+    {
+        "From": "central",
+        "To": "top",
+        "Message": {
+            "subscribe": {
+                "topic": "test/1"
+            },
+            "traversed": [
+                "left",
+                "central"
+            ],
+            "ttl": 30
+        }
+    },
+    {
+        "From": "top",
+        "To": "central",
+        "Message": {
+            "subscribe": {
+                "topic": "test/*"
+            },
+            "traversed": [
+                "top"
+            ],
+            "ttl": 31
+        }
+    }
+]

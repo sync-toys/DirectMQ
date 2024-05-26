@@ -1,0 +1,97 @@
+[
+    {
+        "From": "right",
+        "To": "central",
+        "Message": {
+            "supportedProtocolVersions": {
+                "supportedProtocolVersions": [
+                    1
+                ]
+            },
+            "traversed": [
+                "right"
+            ],
+            "ttl": 2
+        }
+    },
+    {
+        "From": "central",
+        "To": "right",
+        "Message": {
+            "supportedProtocolVersions": {
+                "supportedProtocolVersions": [
+                    1
+                ]
+            },
+            "traversed": [
+                "right",
+                "central"
+            ],
+            "ttl": 1
+        }
+    },
+    {
+        "From": "right",
+        "To": "central",
+        "Message": {
+            "initConnection": {},
+            "traversed": [
+                "right"
+            ],
+            "ttl": 1
+        }
+    },
+    {
+        "From": "central",
+        "To": "right",
+        "Message": {
+            "connectionAccepted": {},
+            "traversed": [
+                "central"
+            ],
+            "ttl": 1
+        }
+    },
+    {
+        "From": "central",
+        "To": "right",
+        "Message": {
+            "subscribe": {
+                "topic": "test/1"
+            },
+            "traversed": [
+                "left",
+                "central"
+            ],
+            "ttl": 30
+        }
+    },
+    {
+        "From": "central",
+        "To": "right",
+        "Message": {
+            "subscribe": {
+                "topic": "test/*"
+            },
+            "traversed": [
+                "top",
+                "central"
+            ],
+            "ttl": 30
+        }
+    },
+    {
+        "From": "central",
+        "To": "right",
+        "Message": {
+            "traversed": [
+                "top",
+                "central"
+            ],
+            "ttl": 30,
+            "unsubscribe": {
+                "topic": "test/1"
+            }
+        }
+    }
+]
