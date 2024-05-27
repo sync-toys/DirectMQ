@@ -7,7 +7,7 @@
     "userEnvProbe": "loginShell",
     "updateRemoteUserUID": false,
 
-    "onCreateCommand": "nix-shell --command 'echo done building nix dev environment'",
+    "onCreateCommand": "/host/workspace/.devcontainer/on-create.sh",
     "waitFor": "onCreateCommand",
 
     "workspaceMount": "source=${localWorkspaceFolder},target=/host/workspace,type=bind,consistency=cached",
