@@ -1,0 +1,32 @@
+{
+    "name": "nix-devcontainer",
+    "dockerFile": "../Dockerfile",
+    "workspaceFolder": "/workspace",
+    "mounts": [],
+
+    "userEnvProbe": "loginShell",
+    "updateRemoteUserUID": false,
+
+    "onCreateCommand": "nix-shell --command 'echo done building nix dev environment'",
+    "waitFor": "onCreateCommand",
+
+    "workspaceMount": "source=${localWorkspaceFolder},target=/host/workspace,type=bind,consistency=cached",
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                // select nix environment
+                "arrterian.nix-env-selector",
+
+                // nix formatting and dev support
+                "jnoortheen.nix-ide",
+
+                // run command on save (needed to reload nix environment)
+                "fsevenm.run-it-on",
+
+                // go language support
+                "golang.go"
+            ]
+        }
+    }
+  }
