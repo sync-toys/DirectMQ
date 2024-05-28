@@ -7,7 +7,7 @@
     "userEnvProbe": "loginShell",
     "updateRemoteUserUID": false,
 
-    "onCreateCommand": "/host/workspace/.devcontainer/on-create.sh",
+    "onCreateCommand": "sudo chmod +x /host/workspace/.devcontainer/on-create.sh && sudo bash /host/workspace/.devcontainer/on-create.sh",
     "waitFor": "onCreateCommand",
 
     "workspaceMount": "source=${localWorkspaceFolder},target=/host/workspace,type=bind,consistency=cached",
