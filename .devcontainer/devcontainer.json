@@ -30,7 +30,16 @@
                 "fsevenm.run-it-on",
 
                 // go language support
-                "golang.go"
+                "golang.go",
+
+                // c++ language support
+                "ms-vscode.cpptools-extension-pack",
+
+                // docker support
+                "ms-azuretools.vscode-docker",
+
+                // copilot extension
+                "GitHub.copilot"
             ]
         }
     }
