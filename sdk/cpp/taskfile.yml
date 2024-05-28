@@ -1,0 +1,31 @@
+version: 3
+
+tasks:
+    default:
+        desc: Show all available tasks
+        silent: true
+        cmds:
+            - task --list-all
+
+    build:
+        desc: Build the DirectMQ C++ SDK
+        silent: true
+        cmds:
+            - cmake -B build -S .
+            - cmake --build build
+
+    test:
+        desc: Run the DirectMQ C++ SDK tests
+        silent: true
+        cmds:
+            - cmake -B build -S .
+            - cmake --build build --target test
+            - ctest --test-dir build
+
+    run:
+        desc: Run the DirectMQ C++ SDK example
+        silent: true
+        cmds:
+            - cmake -B build -S .
+            - cmake --build build
+            - ./build/directmq-sdk

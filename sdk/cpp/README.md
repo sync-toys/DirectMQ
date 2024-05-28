@@ -1,0 +1,1 @@
+template source: https://nixcademy.com/2023/10/31/cpp-with-nix-in-2023-part-1-shell/
