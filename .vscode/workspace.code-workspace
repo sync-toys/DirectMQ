@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "..",
+			"name": "Workspace"
+		},
+		{
+			"path": "../sdk/go",
+			"name": "Go SDK"
+		},
+		{
+			"path": "../sdk/cpp",
+			"name": "C++ SDK"
+		},
+		{
+			"path": "../spec",
+			"name": "Specification"
+		}
+	],
+	"settings": {
+		"nixEnvSelector.nixFile": "${workspaceFolder}/shell.nix"
+	}
+}
