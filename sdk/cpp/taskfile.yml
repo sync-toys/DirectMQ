@@ -20,6 +20,12 @@ tasks:
             - cmake -B build -S .
             - cmake --build build
 
+    lint:
+        desc: Lint the DirectMQ C++ SDK source code
+        silent: true
+        cmds:
+            - find include src test -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | xargs clang-format -i -style=file
+
     test:
         desc: Run the DirectMQ C++ SDK tests
         silent: true
@@ -42,8 +48,11 @@ tasks:
         watch: true
         interval: 500ms
         sources:
-            - src/**/*.cpp
-            - test/**/*.cpp
+            - lib/**/*.*
+            - include/**/*.*
+            - src/**/*.*
+            - test/**/*.*
         cmds:
+            - task: lint
             - task: build
             - task: test
