@@ -39,7 +39,10 @@
                 "ms-azuretools.vscode-docker",
 
                 // copilot extension
-                "GitHub.copilot"
+                "GitHub.copilot",
+
+                // editorconfig support
+                "EditorConfig.EditorConfig"
             ]
         }
     }
