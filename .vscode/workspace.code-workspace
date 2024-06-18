@@ -5,6 +5,10 @@
 			"name": "Workspace"
 		},
 		{
+			"path": "../proto",
+			"name": "Protocol"
+		},
+		{
 			"path": "../sdk/go",
 			"name": "Go SDK"
 		},
