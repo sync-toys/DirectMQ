@@ -94,8 +94,7 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
             }
 
             case directmq_v1_DataFrame_subscribe_tag: {
-                directmq_v1_Subscribe encoded =
-                    *frame.message.subscribe;
+                directmq_v1_Subscribe encoded = *frame.message.subscribe;
 
                 messages::SubscribeMessage subscribeMessage{
                     .frame = decodedFrame, .topic = encoded.topic};
@@ -105,8 +104,7 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
             }
 
             case directmq_v1_DataFrame_unsubscribe_tag: {
-                directmq_v1_Unsubscribe encoded =
-                    *frame.message.unsubscribe;
+                directmq_v1_Unsubscribe encoded = *frame.message.unsubscribe;
 
                 messages::UnsubscribeMessage unsubscribeMessage{
                     .frame = decodedFrame, .topic = encoded.topic};
