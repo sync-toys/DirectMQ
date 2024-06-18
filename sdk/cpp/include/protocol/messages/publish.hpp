@@ -12,6 +12,6 @@ struct PublishMessage {
     char* topic;
     DeliveryStrategy deliveryStrategy;
     bytes payload;
-    size_t payloadSize;
+    uint64_t payloadSize;
 };
 }  // namespace directmq::protocol::messages

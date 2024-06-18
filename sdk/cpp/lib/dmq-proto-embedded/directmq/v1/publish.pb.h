@@ -19,7 +19,7 @@ typedef enum _directmq_v1_DeliveryStrategy {
 typedef struct _directmq_v1_Publish {
     char *topic;
     directmq_v1_DeliveryStrategy *delivery_strategy;
-    int64_t *size;
+    uint64_t *size;
     pb_bytes_array_t *payload;
 } directmq_v1_Publish;
 
@@ -50,7 +50,7 @@ extern "C" {
 #define directmq_v1_Publish_FIELDLIST(X, a) \
 X(a, POINTER,  SINGULAR, STRING,   topic,             1) \
 X(a, POINTER,  SINGULAR, UENUM,    delivery_strategy,   2) \
-X(a, POINTER,  SINGULAR, INT64,    size,              3) \
+X(a, POINTER,  SINGULAR, UINT64,   size,              3) \
 X(a, POINTER,  SINGULAR, BYTES,    payload,           4)
 #define directmq_v1_Publish_CALLBACK NULL
 #define directmq_v1_Publish_DEFAULT NULL

@@ -10,6 +10,6 @@ enum DeliveryStrategy {
 message Publish {
     string topic = 1;
     DeliveryStrategy delivery_strategy = 2;
-    int64 size = 3;
+    uint64 size = 3;
     bytes payload = 4;
 }
