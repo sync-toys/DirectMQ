@@ -261,7 +261,7 @@ SCENARIO("basic encoding and decoding", "[protocol]") {
             encoder.supportedProtocolVersions(message, portal);
             auto result = decoder.readMessage(&portal, &handler);
 
-            std::cout << result.error << std::endl;
+            REQUIRE(result.error == nullptr);
             REQUIRE(called);
         }
     }

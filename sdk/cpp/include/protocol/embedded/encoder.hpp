@@ -1,6 +1,8 @@
 #pragma once
 #include <pb_encode.h>
 
+#include <cstdlib>
+
 #include "../../portal.hpp"
 #include "../encoder.hpp"
 #include "directmq/v1/data_frame.pb.h"
@@ -62,6 +64,7 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
 
         directmq_v1_SupportedProtocolVersions encoded =
             directmq_v1_SupportedProtocolVersions_init_zero;
+
         encoded.supported_protocol_versions = message.supportedVersions;
         encoded.supported_protocol_versions_count =
             message.supportedVersionsCount;
@@ -71,52 +74,126 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
         return this->writeFrame(frame, packetWriter);
     }
 
-    EncodingResult initConnection(messages::InitConnectionMessage& message
-                                  __attribute__((unused)),
-                                  PacketWriter& packetWriter
-                                  __attribute__((unused))) override {
-        return EncodingResult{"not implemented"};
+    EncodingResult initConnection(messages::InitConnectionMessage& message,
+                                  PacketWriter& packetWriter) override {
+        auto frame = this->createFrameOf(
+            directmq_v1_DataFrame_init_connection_tag, message.frame);
+
+        directmq_v1_InitConnection encoded =
+            directmq_v1_InitConnection_init_zero;
+
+        encoded.max_message_size = &message.maxMessageSize;
+
+        frame.message.init_connection = &encoded;
+
+        return this->writeFrame(frame, packetWriter);
     }
 
     EncodingResult connectionAccepted(
-        messages::ConnectionAcceptedMessage& message __attribute__((unused)),
-        PacketWriter& packetWritere __attribute__((unused))) override {
-        return EncodingResult{"not implemented"};
+        messages::ConnectionAcceptedMessage& message,
+        PacketWriter& packetWriter) override {
+        auto frame = this->createFrameOf(
+            directmq_v1_DataFrame_connection_accepted_tag, message.frame);
+
+        directmq_v1_ConnectionAccepted encoded =
+            directmq_v1_ConnectionAccepted_init_zero;
+
+        encoded.max_message_size = &message.maxMessageSize;
+
+        frame.message.connection_accepted = &encoded;
+
+        return this->writeFrame(frame, packetWriter);
     };
 
-    EncodingResult gracefullyClose(messages::GracefullyCloseMessage& message
-                                   __attribute__((unused)),
-                                   PacketWriter& packetWriter
-                                   __attribute__((unused))) override {
-        return EncodingResult{"not implemented"};
+    EncodingResult gracefullyClose(messages::GracefullyCloseMessage& message,
+                                   PacketWriter& packetWriter) override {
+        auto frame = this->createFrameOf(
+            directmq_v1_DataFrame_gracefully_close_tag, message.frame);
+
+        directmq_v1_GracefullyClose encoded =
+            directmq_v1_GracefullyClose_init_zero;
+
+        encoded.reason = message.reason;
+
+        frame.message.gracefully_close = &encoded;
+
+        return this->writeFrame(frame, packetWriter);
     };
 
-    EncodingResult terminateNetwork(messages::TerminateNetworkMessage& message
-                                    __attribute__((unused)),
-                                    PacketWriter& packetWriter
-                                    __attribute__((unused))) override {
-        return EncodingResult{"not implemented"};
+    EncodingResult terminateNetwork(messages::TerminateNetworkMessage& message,
+                                    PacketWriter& packetWriter) override {
+        auto frame = this->createFrameOf(
+            directmq_v1_DataFrame_terminate_network_tag, message.frame);
+
+        directmq_v1_TerminateNetwork encoded =
+            directmq_v1_TerminateNetwork_init_zero;
+
+        encoded.reason = message.reason;
+
+        frame.message.terminate_network = &encoded;
+
+        return this->writeFrame(frame, packetWriter);
     };
 
-    EncodingResult publish(messages::PublishMessage& message
-                           __attribute__((unused)),
-                           PacketWriter& packetWriter
-                           __attribute__((unused))) override {
-        return EncodingResult{"not implemented"};
+    EncodingResult publish(messages::PublishMessage& message,
+                           PacketWriter& packetWriter) override {
+        auto frame = this->createFrameOf(directmq_v1_DataFrame_publish_tag,
+                                         message.frame);
+
+        directmq_v1_DeliveryStrategy deliveryStrategy =
+            message.deliveryStrategy ==
+                    messages::DeliveryStrategy::AT_LEAST_ONCE
+                ? directmq_v1_DeliveryStrategy_DELIVERY_STRATEGY_AT_LEAST_ONCE_UNSPECIFIED
+                : directmq_v1_DeliveryStrategy_DELIVERY_STRATEGY_AT_MOST_ONCE;
+
+        directmq_v1_Publish encoded = directmq_v1_Publish_init_zero;
+
+        encoded.topic = message.topic;
+        encoded.delivery_strategy = &deliveryStrategy;
+        encoded.size = &message.payloadSize;
+
+        size_t totalSize = PB_BYTES_ARRAY_T_ALLOCSIZE(message.payloadSize);
+        pb_bytes_array_t* payloadPtr = (pb_bytes_array_t*)malloc(totalSize);
+        if (payloadPtr == nullptr) {
+            return EncodingResult{"failed to allocate memory for payload"};
+        }
+
+        payloadPtr->size = message.payloadSize;
+        memcpy(payloadPtr->bytes, message.payload, message.payloadSize);
+
+        encoded.payload = payloadPtr;
+
+        frame.message.publish = &encoded;
+
+        return this->writeFrame(frame, packetWriter);
     };
 
-    EncodingResult subscribe(messages::SubscribeMessage& message
-                             __attribute__((unused)),
-                             PacketWriter& packetWriter
-                             __attribute__((unused))) override {
-        return EncodingResult{"not implemented"};
+    EncodingResult subscribe(messages::SubscribeMessage& message,
+                             PacketWriter& packetWriter) override {
+        auto frame = this->createFrameOf(directmq_v1_DataFrame_subscribe_tag,
+                                         message.frame);
+
+        directmq_v1_Subscribe encoded = directmq_v1_Subscribe_init_zero;
+
+        encoded.topic = message.topic;
+
+        frame.message.subscribe = &encoded;
+
+        return this->writeFrame(frame, packetWriter);
     };
 
-    EncodingResult unsubscribe(messages::UnsubscribeMessage& message
-                               __attribute__((unused)),
-                               PacketWriter& packetWriter
-                               __attribute__((unused))) override {
-        return EncodingResult{"not implemented"};
+    EncodingResult unsubscribe(messages::UnsubscribeMessage& message,
+                               PacketWriter& packetWriter) override {
+        auto frame = this->createFrameOf(directmq_v1_DataFrame_unsubscribe_tag,
+                                         message.frame);
+
+        directmq_v1_Unsubscribe encoded = directmq_v1_Unsubscribe_init_zero;
+
+        encoded.topic = message.topic;
+
+        frame.message.unsubscribe = &encoded;
+
+        return this->writeFrame(frame, packetWriter);
     };
 };
 }  // namespace directmq::protocol::embedded
