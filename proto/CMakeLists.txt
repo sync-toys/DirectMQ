@@ -21,8 +21,5 @@ target_link_libraries(dmq-proto-embedded PRIVATE
 
 target_include_directories(dmq-proto-embedded PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-target_include_directories(dmq-proto-embedded PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/directmq/v1
 )
