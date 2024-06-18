@@ -15,18 +15,19 @@
 
 /* Struct definitions */
 typedef struct _directmq_v1_DataFrame {
-    int32_t ttl;
-    pb_callback_t traversed;
+    int32_t *ttl;
+    pb_size_t traversed_count;
+    char **traversed;
     pb_size_t which_message;
     union {
-        directmq_v1_SupportedProtocolVersions supported_protocol_versions;
-        directmq_v1_InitConnection init_connection;
-        directmq_v1_ConnectionAccepted connection_accepted;
-        directmq_v1_Publish publish;
-        directmq_v1_Subscribe subscribe;
-        directmq_v1_Unsubscribe unsubscribe;
-        directmq_v1_GracefullyClose gracefully_close;
-        directmq_v1_TerminateNetwork terminate_network;
+        struct _directmq_v1_SupportedProtocolVersions *supported_protocol_versions;
+        struct _directmq_v1_InitConnection *init_connection;
+        struct _directmq_v1_ConnectionAccepted *connection_accepted;
+        struct _directmq_v1_Publish *publish;
+        struct _directmq_v1_Subscribe *subscribe;
+        struct _directmq_v1_Unsubscribe *unsubscribe;
+        struct _directmq_v1_GracefullyClose *gracefully_close;
+        struct _directmq_v1_TerminateNetwork *terminate_network;
     } message;
 } directmq_v1_DataFrame;
 
@@ -36,8 +37,8 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define directmq_v1_DataFrame_init_default       {0, {{NULL}, NULL}, 0, {directmq_v1_SupportedProtocolVersions_init_default}}
-#define directmq_v1_DataFrame_init_zero          {0, {{NULL}, NULL}, 0, {directmq_v1_SupportedProtocolVersions_init_zero}}
+#define directmq_v1_DataFrame_init_default       {NULL, 0, NULL, 0, {NULL}}
+#define directmq_v1_DataFrame_init_zero          {NULL, 0, NULL, 0, {NULL}}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define directmq_v1_DataFrame_ttl_tag            1
@@ -53,17 +54,17 @@ extern "C" {
 
 /* Struct field encoding specification for nanopb */
 #define directmq_v1_DataFrame_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    ttl,               1) \
-X(a, CALLBACK, REPEATED, STRING,   traversed,         2) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,supported_protocol_versions,message.supported_protocol_versions),   3) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,init_connection,message.init_connection),   4) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,connection_accepted,message.connection_accepted),   5) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,publish,message.publish),   6) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,subscribe,message.subscribe),   7) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,unsubscribe,message.unsubscribe),   8) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,gracefully_close,message.gracefully_close),   9) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,terminate_network,message.terminate_network),  10)
-#define directmq_v1_DataFrame_CALLBACK pb_default_field_callback
+X(a, POINTER,  SINGULAR, INT32,    ttl,               1) \
+X(a, POINTER,  REPEATED, STRING,   traversed,         2) \
+X(a, POINTER,  ONEOF,    MESSAGE,  (message,supported_protocol_versions,message.supported_protocol_versions),   3) \
+X(a, POINTER,  ONEOF,    MESSAGE,  (message,init_connection,message.init_connection),   4) \
+X(a, POINTER,  ONEOF,    MESSAGE,  (message,connection_accepted,message.connection_accepted),   5) \
+X(a, POINTER,  ONEOF,    MESSAGE,  (message,publish,message.publish),   6) \
+X(a, POINTER,  ONEOF,    MESSAGE,  (message,subscribe,message.subscribe),   7) \
+X(a, POINTER,  ONEOF,    MESSAGE,  (message,unsubscribe,message.unsubscribe),   8) \
+X(a, POINTER,  ONEOF,    MESSAGE,  (message,gracefully_close,message.gracefully_close),   9) \
+X(a, POINTER,  ONEOF,    MESSAGE,  (message,terminate_network,message.terminate_network),  10)
+#define directmq_v1_DataFrame_CALLBACK NULL
 #define directmq_v1_DataFrame_DEFAULT NULL
 #define directmq_v1_DataFrame_message_supported_protocol_versions_MSGTYPE directmq_v1_SupportedProtocolVersions
 #define directmq_v1_DataFrame_message_init_connection_MSGTYPE directmq_v1_InitConnection
@@ -80,9 +81,6 @@ extern const pb_msgdesc_t directmq_v1_DataFrame_msg;
 #define directmq_v1_DataFrame_fields &directmq_v1_DataFrame_msg
 
 /* Maximum encoded size of messages (where known) */
-#if defined(directmq_v1_SupportedProtocolVersions_size) && defined(directmq_v1_Publish_size) && defined(directmq_v1_Subscribe_size) && defined(directmq_v1_Unsubscribe_size) && defined(directmq_v1_GracefullyClose_size) && defined(directmq_v1_TerminateNetwork_size)
-union directmq_v1_DataFrame_message_size_union {char f3[(6 + directmq_v1_SupportedProtocolVersions_size)]; char f6[(6 + directmq_v1_Publish_size)]; char f7[(6 + directmq_v1_Subscribe_size)]; char f8[(6 + directmq_v1_Unsubscribe_size)]; char f9[(6 + directmq_v1_GracefullyClose_size)]; char f10[(6 + directmq_v1_TerminateNetwork_size)]; char f0[13];};
-#endif
 /* directmq_v1_DataFrame_size depends on runtime parameters */
 
 #ifdef __cplusplus

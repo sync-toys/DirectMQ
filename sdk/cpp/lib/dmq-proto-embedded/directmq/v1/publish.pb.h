@@ -17,10 +17,10 @@ typedef enum _directmq_v1_DeliveryStrategy {
 
 /* Struct definitions */
 typedef struct _directmq_v1_Publish {
-    pb_callback_t topic;
-    directmq_v1_DeliveryStrategy delivery_strategy;
-    int64_t size;
-    pb_callback_t payload;
+    char *topic;
+    directmq_v1_DeliveryStrategy *delivery_strategy;
+    int64_t *size;
+    pb_bytes_array_t *payload;
 } directmq_v1_Publish;
 
 
@@ -37,8 +37,8 @@ extern "C" {
 
 
 /* Initializer values for message structs */
-#define directmq_v1_Publish_init_default         {{{NULL}, NULL}, _directmq_v1_DeliveryStrategy_MIN, 0, {{NULL}, NULL}}
-#define directmq_v1_Publish_init_zero            {{{NULL}, NULL}, _directmq_v1_DeliveryStrategy_MIN, 0, {{NULL}, NULL}}
+#define directmq_v1_Publish_init_default         {NULL, NULL, NULL, NULL}
+#define directmq_v1_Publish_init_zero            {NULL, NULL, NULL, NULL}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define directmq_v1_Publish_topic_tag            1
@@ -48,11 +48,11 @@ extern "C" {
 
 /* Struct field encoding specification for nanopb */
 #define directmq_v1_Publish_FIELDLIST(X, a) \
-X(a, CALLBACK, SINGULAR, STRING,   topic,             1) \
-X(a, STATIC,   SINGULAR, UENUM,    delivery_strategy,   2) \
-X(a, STATIC,   SINGULAR, INT64,    size,              3) \
-X(a, CALLBACK, SINGULAR, BYTES,    payload,           4)
-#define directmq_v1_Publish_CALLBACK pb_default_field_callback
+X(a, POINTER,  SINGULAR, STRING,   topic,             1) \
+X(a, POINTER,  SINGULAR, UENUM,    delivery_strategy,   2) \
+X(a, POINTER,  SINGULAR, INT64,    size,              3) \
+X(a, POINTER,  SINGULAR, BYTES,    payload,           4)
+#define directmq_v1_Publish_CALLBACK NULL
 #define directmq_v1_Publish_DEFAULT NULL
 
 extern const pb_msgdesc_t directmq_v1_Publish_msg;

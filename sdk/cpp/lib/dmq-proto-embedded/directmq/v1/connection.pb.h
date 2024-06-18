@@ -11,23 +11,24 @@
 
 /* Struct definitions */
 typedef struct _directmq_v1_SupportedProtocolVersions {
-    pb_callback_t supported_protocol_versions;
+    pb_size_t supported_protocol_versions_count;
+    uint32_t *supported_protocol_versions;
 } directmq_v1_SupportedProtocolVersions;
 
 typedef struct _directmq_v1_InitConnection {
-    uint64_t max_message_size;
+    uint64_t *max_message_size;
 } directmq_v1_InitConnection;
 
 typedef struct _directmq_v1_ConnectionAccepted {
-    uint64_t max_message_size;
+    uint64_t *max_message_size;
 } directmq_v1_ConnectionAccepted;
 
 typedef struct _directmq_v1_GracefullyClose {
-    pb_callback_t reason;
+    char *reason;
 } directmq_v1_GracefullyClose;
 
 typedef struct _directmq_v1_TerminateNetwork {
-    pb_callback_t reason;
+    char *reason;
 } directmq_v1_TerminateNetwork;
 
 
@@ -36,16 +37,16 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define directmq_v1_SupportedProtocolVersions_init_default {{{NULL}, NULL}}
-#define directmq_v1_InitConnection_init_default  {0}
-#define directmq_v1_ConnectionAccepted_init_default {0}
-#define directmq_v1_GracefullyClose_init_default {{{NULL}, NULL}}
-#define directmq_v1_TerminateNetwork_init_default {{{NULL}, NULL}}
-#define directmq_v1_SupportedProtocolVersions_init_zero {{{NULL}, NULL}}
-#define directmq_v1_InitConnection_init_zero     {0}
-#define directmq_v1_ConnectionAccepted_init_zero {0}
-#define directmq_v1_GracefullyClose_init_zero    {{{NULL}, NULL}}
-#define directmq_v1_TerminateNetwork_init_zero   {{{NULL}, NULL}}
+#define directmq_v1_SupportedProtocolVersions_init_default {0, NULL}
+#define directmq_v1_InitConnection_init_default  {NULL}
+#define directmq_v1_ConnectionAccepted_init_default {NULL}
+#define directmq_v1_GracefullyClose_init_default {NULL}
+#define directmq_v1_TerminateNetwork_init_default {NULL}
+#define directmq_v1_SupportedProtocolVersions_init_zero {0, NULL}
+#define directmq_v1_InitConnection_init_zero     {NULL}
+#define directmq_v1_ConnectionAccepted_init_zero {NULL}
+#define directmq_v1_GracefullyClose_init_zero    {NULL}
+#define directmq_v1_TerminateNetwork_init_zero   {NULL}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define directmq_v1_SupportedProtocolVersions_supported_protocol_versions_tag 1
@@ -56,28 +57,28 @@ extern "C" {
 
 /* Struct field encoding specification for nanopb */
 #define directmq_v1_SupportedProtocolVersions_FIELDLIST(X, a) \
-X(a, CALLBACK, REPEATED, UINT32,   supported_protocol_versions,   1)
-#define directmq_v1_SupportedProtocolVersions_CALLBACK pb_default_field_callback
+X(a, POINTER,  REPEATED, UINT32,   supported_protocol_versions,   1)
+#define directmq_v1_SupportedProtocolVersions_CALLBACK NULL
 #define directmq_v1_SupportedProtocolVersions_DEFAULT NULL
 
 #define directmq_v1_InitConnection_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT64,   max_message_size,   1)
+X(a, POINTER,  SINGULAR, UINT64,   max_message_size,   1)
 #define directmq_v1_InitConnection_CALLBACK NULL
 #define directmq_v1_InitConnection_DEFAULT NULL
 
 #define directmq_v1_ConnectionAccepted_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT64,   max_message_size,   1)
+X(a, POINTER,  SINGULAR, UINT64,   max_message_size,   1)
 #define directmq_v1_ConnectionAccepted_CALLBACK NULL
 #define directmq_v1_ConnectionAccepted_DEFAULT NULL
 
 #define directmq_v1_GracefullyClose_FIELDLIST(X, a) \
-X(a, CALLBACK, SINGULAR, STRING,   reason,            1)
-#define directmq_v1_GracefullyClose_CALLBACK pb_default_field_callback
+X(a, POINTER,  SINGULAR, STRING,   reason,            1)
+#define directmq_v1_GracefullyClose_CALLBACK NULL
 #define directmq_v1_GracefullyClose_DEFAULT NULL
 
 #define directmq_v1_TerminateNetwork_FIELDLIST(X, a) \
-X(a, CALLBACK, SINGULAR, STRING,   reason,            1)
-#define directmq_v1_TerminateNetwork_CALLBACK pb_default_field_callback
+X(a, POINTER,  SINGULAR, STRING,   reason,            1)
+#define directmq_v1_TerminateNetwork_CALLBACK NULL
 #define directmq_v1_TerminateNetwork_DEFAULT NULL
 
 extern const pb_msgdesc_t directmq_v1_SupportedProtocolVersions_msg;
@@ -95,11 +96,10 @@ extern const pb_msgdesc_t directmq_v1_TerminateNetwork_msg;
 
 /* Maximum encoded size of messages (where known) */
 /* directmq_v1_SupportedProtocolVersions_size depends on runtime parameters */
+/* directmq_v1_InitConnection_size depends on runtime parameters */
+/* directmq_v1_ConnectionAccepted_size depends on runtime parameters */
 /* directmq_v1_GracefullyClose_size depends on runtime parameters */
 /* directmq_v1_TerminateNetwork_size depends on runtime parameters */
-#define DIRECTMQ_V1_DIRECTMQ_V1_CONNECTION_PB_H_MAX_SIZE directmq_v1_InitConnection_size
-#define directmq_v1_ConnectionAccepted_size      11
-#define directmq_v1_InitConnection_size          11
 
 #ifdef __cplusplus
 } /* extern "C" */

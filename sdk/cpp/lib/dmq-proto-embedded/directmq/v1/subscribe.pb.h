@@ -11,7 +11,7 @@
 
 /* Struct definitions */
 typedef struct _directmq_v1_Subscribe {
-    pb_callback_t topic;
+    char *topic;
 } directmq_v1_Subscribe;
 
 
@@ -20,16 +20,16 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define directmq_v1_Subscribe_init_default       {{{NULL}, NULL}}
-#define directmq_v1_Subscribe_init_zero          {{{NULL}, NULL}}
+#define directmq_v1_Subscribe_init_default       {NULL}
+#define directmq_v1_Subscribe_init_zero          {NULL}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define directmq_v1_Subscribe_topic_tag          1
 
 /* Struct field encoding specification for nanopb */
 #define directmq_v1_Subscribe_FIELDLIST(X, a) \
-X(a, CALLBACK, SINGULAR, STRING,   topic,             1)
-#define directmq_v1_Subscribe_CALLBACK pb_default_field_callback
+X(a, POINTER,  SINGULAR, STRING,   topic,             1)
+#define directmq_v1_Subscribe_CALLBACK NULL
 #define directmq_v1_Subscribe_DEFAULT NULL
 
 extern const pb_msgdesc_t directmq_v1_Subscribe_msg;
