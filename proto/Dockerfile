@@ -1,4 +1,4 @@
-FROM alpine:3.18 AS gobuild
+FROM alpine:3.20 AS gobuild
 
 ENV PATH /usr/local/go/bin:$PATH
 
