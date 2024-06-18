@@ -31,8 +31,7 @@ tasks:
         silent: true
         cmds:
             - cmake -B build -S .
-            - cmake --build build --target test
-            - ctest --test-dir build
+            - ctest --test-dir build --output-on-failure
 
     run:
         desc: Run the DirectMQ C++ SDK example
