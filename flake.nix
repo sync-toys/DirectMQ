@@ -24,6 +24,10 @@
             cmake
             go-task
             clang-tools
+            python3
+            python3Packages.setuptools
+            gdb
+            protobuf
           ];
         };
       };
