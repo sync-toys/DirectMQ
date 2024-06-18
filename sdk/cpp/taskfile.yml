@@ -53,5 +53,6 @@ tasks:
             - test/**/*.*
         cmds:
             - task: lint
+            - task: clean
             - task: build
             - task: test
