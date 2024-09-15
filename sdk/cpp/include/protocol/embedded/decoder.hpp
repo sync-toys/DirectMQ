@@ -128,7 +128,7 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
     }
 
    public:
-    DecodingResult readMessage(PacketReader* packetReader,
+    DecodingResult readMessage(portal::PacketReader* packetReader,
                                DecodingHandler* handler) {
         auto packet = packetReader->readPacket();
         if (packet.size == 0) {

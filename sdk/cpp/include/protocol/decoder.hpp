@@ -28,7 +28,7 @@ class DecodingHandler {
 
 class Decoder {
    public:
-    virtual DecodingResult readMessage(PacketReader* packetReader,
+    virtual DecodingResult readMessage(portal::PacketReader* packetReader,
                                        DecodingHandler* handler) = 0;
 };
 }  // namespace directmq::protocol

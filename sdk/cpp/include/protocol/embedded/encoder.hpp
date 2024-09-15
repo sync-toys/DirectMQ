@@ -19,7 +19,7 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
     }
 
     EncodingResult writeFrame(const directmq_v1_DataFrame& frame,
-                              PacketWriter& packetWriter) {
+                              portal::PacketWriter& packetWriter) {
         size_t frameSize = 0;
         const auto sizeCalculationSuccessful = pb_get_encoded_size(
             &frameSize, directmq_v1_DataFrame_fields, &frame);
@@ -30,12 +30,13 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
         pb_byte_t buffer[frameSize] = {0};
         auto stream = pb_ostream_from_buffer(buffer, frameSize);
 
-        DataWriter* dataWriter = packetWriter.beginWrite(frameSize);
+        portal::DataWriter* dataWriter = packetWriter.beginWrite(frameSize);
 
         stream.state = dataWriter;
         stream.callback = [](pb_ostream_t* stream, const pb_byte_t* data,
                              const size_t size) {
-            DataWriter* dataWriter = static_cast<DataWriter*>(stream->state);
+            portal::DataWriter* dataWriter =
+                static_cast<portal::DataWriter*>(stream->state);
             return dataWriter->write(data, size);
         };
 
@@ -75,7 +76,7 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
    public:
     EncodingResult supportedProtocolVersions(
         messages::SupportedProtocolVersionsMessage& message,
-        PacketWriter& packetWriter) override {
+        portal::PacketWriter& packetWriter) override {
         auto frame = this->createFrameOf(
             directmq_v1_DataFrame_supported_protocol_versions_tag,
             message.frame);
@@ -97,7 +98,7 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
     }
 
     EncodingResult initConnection(messages::InitConnectionMessage& message,
-                                  PacketWriter& packetWriter) override {
+                                  portal::PacketWriter& packetWriter) override {
         auto frame = this->createFrameOf(
             directmq_v1_DataFrame_init_connection_tag, message.frame);
 
@@ -116,7 +117,7 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
 
     EncodingResult connectionAccepted(
         messages::ConnectionAcceptedMessage& message,
-        PacketWriter& packetWriter) override {
+        portal::PacketWriter& packetWriter) override {
         auto frame = this->createFrameOf(
             directmq_v1_DataFrame_connection_accepted_tag, message.frame);
 
@@ -133,8 +134,9 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
         return result;
     };
 
-    EncodingResult gracefullyClose(messages::GracefullyCloseMessage& message,
-                                   PacketWriter& packetWriter) override {
+    EncodingResult gracefullyClose(
+        messages::GracefullyCloseMessage& message,
+        portal::PacketWriter& packetWriter) override {
         auto frame = this->createFrameOf(
             directmq_v1_DataFrame_gracefully_close_tag, message.frame);
 
@@ -151,8 +153,9 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
         return result;
     };
 
-    EncodingResult terminateNetwork(messages::TerminateNetworkMessage& message,
-                                    PacketWriter& packetWriter) override {
+    EncodingResult terminateNetwork(
+        messages::TerminateNetworkMessage& message,
+        portal::PacketWriter& packetWriter) override {
         auto frame = this->createFrameOf(
             directmq_v1_DataFrame_terminate_network_tag, message.frame);
 
@@ -170,7 +173,7 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
     };
 
     EncodingResult publish(messages::PublishMessage& message,
-                           PacketWriter& packetWriter) override {
+                           portal::PacketWriter& packetWriter) override {
         auto frame = this->createFrameOf(directmq_v1_DataFrame_publish_tag,
                                          message.frame);
 
@@ -209,7 +212,7 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
     };
 
     EncodingResult subscribe(messages::SubscribeMessage& message,
-                             PacketWriter& packetWriter) override {
+                             portal::PacketWriter& packetWriter) override {
         auto frame = this->createFrameOf(directmq_v1_DataFrame_subscribe_tag,
                                          message.frame);
 
@@ -226,7 +229,7 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
     };
 
     EncodingResult unsubscribe(messages::UnsubscribeMessage& message,
-                               PacketWriter& packetWriter) override {
+                               portal::PacketWriter& packetWriter) override {
         auto frame = this->createFrameOf(directmq_v1_DataFrame_unsubscribe_tag,
                                          message.frame);
 

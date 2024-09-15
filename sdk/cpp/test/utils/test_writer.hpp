@@ -8,15 +8,15 @@
 
 using namespace directmq;
 
-class TestWriter : public DataWriter {
+class TestWriter : public portal::DataWriter {
    private:
-    std::queue<Packet>* packets;
+    std::queue<portal::Packet>* packets;
     const size_t packetSize;
     pb_byte_t* data;
     size_t currentPosition = 0;
 
    public:
-    TestWriter(std::queue<Packet>* packets, const size_t packetSize)
+    TestWriter(std::queue<portal::Packet>* packets, const size_t packetSize)
         : packets(packets),
           packetSize(packetSize),
           data(new pb_byte_t[packetSize]) {}
@@ -31,7 +31,7 @@ class TestWriter : public DataWriter {
     }
 
     void end() {
-        Packet packet{
+        portal::Packet packet{
             this->currentPosition,
             this->data,
         };

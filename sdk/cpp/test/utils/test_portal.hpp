@@ -4,21 +4,21 @@
 #include "portal.hpp"
 #include "test_writer.hpp"
 
-class TestPortal : public Portal {
+class TestPortal : public portal::Portal {
    private:
-    std::queue<Packet> packets;
+    std::queue<portal::Packet> packets;
 
    public:
     void close() {}
 
-    DataWriter* beginWrite(const size_t packetSize) {
+    portal::DataWriter* beginWrite(const size_t packetSize) {
         auto writer = new TestWriter(&this->packets, packetSize);
         return writer;
     }
 
-    Packet readPacket() {
+    portal::Packet readPacket() {
         if (this->packets.empty()) {
-            auto packet = Packet{0, nullptr};
+            auto packet = portal::Packet{0, nullptr};
             return packet;
         }
 

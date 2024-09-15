@@ -3,7 +3,7 @@
 #include <bytes.hpp>
 #include <cstddef>
 
-namespace directmq {
+namespace directmq::portal {
 struct Packet {
     size_t size;
     bytes data;
@@ -32,4 +32,4 @@ class Closer {
 };
 
 class Portal : public PacketReader, public PacketWriter, public Closer {};
-}  // namespace directmq
+}  // namespace directmq::portal
