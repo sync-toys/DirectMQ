@@ -10,28 +10,36 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
    private:
     DecodingResult handleMessage(directmq_v1_DataFrame& frame,
                                  DecodingHandler* handler) {
-        messages::DataFrame decodedFrame{
-            .ttl = *frame.ttl,
-            .traversed = frame.traversed,
-            .traversedCount = frame.traversed_count};
+        std::list<std::string> traversed;
+        for (size_t i = 0; i < frame.traversed_count; i++) {
+            traversed.push_back(std::string(frame.traversed[i]));
+        }
+
+        messages::DataFrame decodedFrame{.ttl = *frame.ttl,
+                                         .traversed = traversed};
 
         switch (frame.which_message) {
             case directmq_v1_DataFrame_supported_protocol_versions_tag: {
                 directmq_v1_SupportedProtocolVersions encoded =
                     *frame.message.supported_protocol_versions;
 
+                std::list<uint32_t> supportedVersions;
+                for (size_t i = 0;
+                     i < encoded.supported_protocol_versions_count; i++) {
+                    supportedVersions.push_back(
+                        encoded.supported_protocol_versions[i]);
+                }
+
                 messages::SupportedProtocolVersionsMessage
                     supportedProtolVersionsMessage{
                         .frame = decodedFrame,
-                        .supportedVersions =
-                            encoded.supported_protocol_versions,
-                        .supportedVersionsCount =
-                            encoded.supported_protocol_versions_count};
+                        .supportedVersions = supportedVersions};
 
                 handler->onSupportedProtocolVersions(
                     supportedProtolVersionsMessage);
                 return DecodingResult{nullptr};
             }
+
             case directmq_v1_DataFrame_init_connection_tag: {
                 directmq_v1_InitConnection encoded =
                     *frame.message.init_connection;
@@ -86,8 +94,10 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
                     .topic = encoded.topic,
                     .deliveryStrategy = static_cast<messages::DeliveryStrategy>(
                         *encoded.delivery_strategy),
-                    .payload = encoded.payload->bytes,
-                    .payloadSize = *encoded.size};
+                    .payload = std::vector<uint8_t>(encoded.payload->size)};
+
+                memcpy(publishMessage.payload.data(), encoded.payload->bytes,
+                       encoded.payload->size);
 
                 handler->onPublish(publishMessage);
                 return DecodingResult{nullptr};
@@ -132,7 +142,16 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
             pb_decode(&stream, directmq_v1_DataFrame_fields, &frame);
 
         if (!successfull) {
-            return DecodingResult{PB_GET_ERROR(&stream)};
+            auto error = PB_GET_ERROR(&stream);
+            messages::MalformedMessage malformedMessage{
+                .bytes = std::vector<uint8_t>(packet.size),
+                .error = std::string(error)};
+
+            std::copy(packet.data, packet.data + packet.size,
+                      malformedMessage.bytes.begin());
+
+            handler->onMalformedMessage(malformedMessage);
+            return DecodingResult{error};
         }
 
         return this->handleMessage(frame, handler);

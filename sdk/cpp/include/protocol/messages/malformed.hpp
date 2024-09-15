@@ -1,11 +1,14 @@
 #pragma once
+
 #include <inttypes.h>
+
+#include <vector>
 
 #include "../../bytes.hpp"
 
 namespace directmq::protocol::messages {
 struct MalformedMessage {
-    bytes message;
-    size_t messageSize;
+    std::vector<uint8_t> bytes;
+    std::string error;
 };
 }  // namespace directmq::protocol::messages

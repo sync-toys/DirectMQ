@@ -6,6 +6,6 @@
 namespace directmq::protocol::messages {
 struct InitConnectionMessage {
     DataFrame frame;
-    uint64_t maxMessageSize;
+    size_t maxMessageSize;
 };
 }  // namespace directmq::protocol::messages

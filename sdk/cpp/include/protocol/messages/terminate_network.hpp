@@ -1,9 +1,12 @@
 #pragma once
+
+#include <string>
+
 #include "data_frame.hpp"
 
 namespace directmq::protocol::messages {
 struct TerminateNetworkMessage {
     DataFrame frame;
-    char* reason;
+    std::string reason;
 };
 }  // namespace directmq::protocol::messages

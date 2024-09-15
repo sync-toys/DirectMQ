@@ -1,5 +1,9 @@
 #pragma once
+
 #include <inttypes.h>
+
+#include <string>
+#include <vector>
 
 #include "../../bytes.hpp"
 #include "data_frame.hpp"
@@ -9,9 +13,8 @@ enum DeliveryStrategy { AT_LEAST_ONCE = 0, AT_MOST_ONCE = 1 };
 
 struct PublishMessage {
     DataFrame frame;
-    char* topic;
+    std::string topic;
     DeliveryStrategy deliveryStrategy;
-    bytes payload;
-    uint64_t payloadSize;
+    std::vector<uint8_t> payload;
 };
 }  // namespace directmq::protocol::messages

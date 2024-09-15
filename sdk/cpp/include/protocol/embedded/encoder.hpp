@@ -1,7 +1,8 @@
 #pragma once
 #include <pb_encode.h>
 
-#include <cstdlib>
+#include <list>
+#include <vector>
 
 #include "../../portal.hpp"
 #include "../encoder.hpp"
@@ -10,6 +11,13 @@
 namespace directmq::protocol::embedded {
 class EmbeddedProtocolEncoderImplementation : public Encoder {
    private:
+    template <typename T>
+    std::vector<T> listToVector(const std::list<T>& lst) {
+        std::vector<T> vec(lst.size());
+        std::copy(lst.begin(), lst.end(), vec.begin());
+        return vec;
+    }
+
     EncodingResult writeFrame(const directmq_v1_DataFrame& frame,
                               PacketWriter& packetWriter) {
         size_t frameSize = 0;
@@ -46,12 +54,22 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
                                         messages::DataFrame& config) {
         directmq_v1_DataFrame frame = directmq_v1_DataFrame_init_zero;
 
+        const char** traversed = new const char*[config.traversed.size()];
+        std::list<std::string>::iterator it = config.traversed.begin();
+        for (size_t i = 0; i < config.traversed.size(); i++, it++) {
+            traversed[i] = (*it).c_str();
+        }
+
         frame.which_message = whichMessage;
         frame.ttl = &config.ttl;
-        frame.traversed = config.traversed;
-        frame.traversed_count = config.traversedCount;
+        frame.traversed = const_cast<char**>(traversed);
+        frame.traversed_count = config.traversed.size();
 
         return frame;
+    }
+
+    void deleteFrame(const directmq_v1_DataFrame& frame) {
+        delete[] frame.traversed;
     }
 
    public:
@@ -65,13 +83,17 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
         directmq_v1_SupportedProtocolVersions encoded =
             directmq_v1_SupportedProtocolVersions_init_zero;
 
-        encoded.supported_protocol_versions = message.supportedVersions;
-        encoded.supported_protocol_versions_count =
-            message.supportedVersionsCount;
+        auto supportedVersions = listToVector(message.supportedVersions);
+
+        encoded.supported_protocol_versions = supportedVersions.data();
+        encoded.supported_protocol_versions_count = supportedVersions.size();
 
         frame.message.supported_protocol_versions = &encoded;
 
-        return this->writeFrame(frame, packetWriter);
+        auto result = this->writeFrame(frame, packetWriter);
+        this->deleteFrame(frame);
+
+        return result;
     }
 
     EncodingResult initConnection(messages::InitConnectionMessage& message,
@@ -86,7 +108,10 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
 
         frame.message.init_connection = &encoded;
 
-        return this->writeFrame(frame, packetWriter);
+        auto result = this->writeFrame(frame, packetWriter);
+        this->deleteFrame(frame);
+
+        return result;
     }
 
     EncodingResult connectionAccepted(
@@ -102,7 +127,10 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
 
         frame.message.connection_accepted = &encoded;
 
-        return this->writeFrame(frame, packetWriter);
+        auto result = this->writeFrame(frame, packetWriter);
+        this->deleteFrame(frame);
+
+        return result;
     };
 
     EncodingResult gracefullyClose(messages::GracefullyCloseMessage& message,
@@ -113,11 +141,14 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
         directmq_v1_GracefullyClose encoded =
             directmq_v1_GracefullyClose_init_zero;
 
-        encoded.reason = message.reason;
+        encoded.reason = const_cast<char*>(message.reason.c_str());
 
         frame.message.gracefully_close = &encoded;
 
-        return this->writeFrame(frame, packetWriter);
+        auto result = this->writeFrame(frame, packetWriter);
+        this->deleteFrame(frame);
+
+        return result;
     };
 
     EncodingResult terminateNetwork(messages::TerminateNetworkMessage& message,
@@ -128,11 +159,14 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
         directmq_v1_TerminateNetwork encoded =
             directmq_v1_TerminateNetwork_init_zero;
 
-        encoded.reason = message.reason;
+        encoded.reason = const_cast<char*>(message.reason.c_str());
 
         frame.message.terminate_network = &encoded;
 
-        return this->writeFrame(frame, packetWriter);
+        auto result = this->writeFrame(frame, packetWriter);
+        this->deleteFrame(frame);
+
+        return result;
     };
 
     EncodingResult publish(messages::PublishMessage& message,
@@ -148,24 +182,30 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
 
         directmq_v1_Publish encoded = directmq_v1_Publish_init_zero;
 
-        encoded.topic = message.topic;
+        encoded.topic = const_cast<char*>(message.topic.c_str());
         encoded.delivery_strategy = &deliveryStrategy;
-        encoded.size = &message.payloadSize;
 
-        size_t totalSize = PB_BYTES_ARRAY_T_ALLOCSIZE(message.payloadSize);
+        auto payloadSize = message.payload.size();
+        encoded.size = &payloadSize;
+
+        size_t totalSize = PB_BYTES_ARRAY_T_ALLOCSIZE(message.payload.size());
         pb_bytes_array_t* payloadPtr = (pb_bytes_array_t*)malloc(totalSize);
         if (payloadPtr == nullptr) {
             return EncodingResult{"failed to allocate memory for payload"};
         }
 
-        payloadPtr->size = message.payloadSize;
-        memcpy(payloadPtr->bytes, message.payload, message.payloadSize);
+        payloadPtr->size = message.payload.size();
+        memcpy(payloadPtr->bytes, message.payload.data(),
+               message.payload.size());
 
         encoded.payload = payloadPtr;
 
         frame.message.publish = &encoded;
 
-        return this->writeFrame(frame, packetWriter);
+        auto result = this->writeFrame(frame, packetWriter);
+        this->deleteFrame(frame);
+
+        return result;
     };
 
     EncodingResult subscribe(messages::SubscribeMessage& message,
@@ -175,11 +215,14 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
 
         directmq_v1_Subscribe encoded = directmq_v1_Subscribe_init_zero;
 
-        encoded.topic = message.topic;
+        encoded.topic = const_cast<char*>(message.topic.c_str());
 
         frame.message.subscribe = &encoded;
 
-        return this->writeFrame(frame, packetWriter);
+        auto result = this->writeFrame(frame, packetWriter);
+        this->deleteFrame(frame);
+
+        return result;
     };
 
     EncodingResult unsubscribe(messages::UnsubscribeMessage& message,
@@ -189,11 +232,14 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
 
         directmq_v1_Unsubscribe encoded = directmq_v1_Unsubscribe_init_zero;
 
-        encoded.topic = message.topic;
+        encoded.topic = const_cast<char*>(message.topic.c_str());
 
         frame.message.unsubscribe = &encoded;
 
-        return this->writeFrame(frame, packetWriter);
+        auto result = this->writeFrame(frame, packetWriter);
+        this->deleteFrame(frame);
+
+        return result;
     };
 };
 }  // namespace directmq::protocol::embedded

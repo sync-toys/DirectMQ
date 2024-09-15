@@ -3,10 +3,12 @@
 #include <inttypes.h>
 #include <stddef.h>
 
+#include <list>
+#include <string>
+
 namespace directmq::protocol::messages {
 struct DataFrame {
     int32_t ttl;
-    char** traversed;
-    size_t traversedCount;
+    std::list<std::string> traversed;
 };
 }  // namespace directmq::protocol::messages
