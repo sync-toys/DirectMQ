@@ -52,7 +52,12 @@ tasks:
             - src/**/*.*
             - test/**/*.*
         cmds:
+            - clear
+            - echo "Linting source code"
             - task: lint
+            - echo "Cleaning build directory"
             - task: clean
+            - echo "Building DirectMQ C++ SDK"
             - task: build
+            - echo "Running tests"
             - task: test
