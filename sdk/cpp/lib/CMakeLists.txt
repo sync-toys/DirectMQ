@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.26)
 
 set(NANOPB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/nanopb")
 include_directories(${NANOPB_INCLUDE_DIR})
