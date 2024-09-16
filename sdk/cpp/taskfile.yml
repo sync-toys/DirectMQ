@@ -33,7 +33,7 @@ tasks:
         desc: Build the DirectMQ C++ SDK
         silent: true
         cmds:
-            - cmake -B build -S .
+            - cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
             - cmake --build build
 
     lint:
@@ -46,7 +46,7 @@ tasks:
         desc: Run the DirectMQ C++ SDK tests
         silent: true
         cmds:
-            - cmake -B build -S .
+            - cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
             - ctest --test-dir build --output-on-failure
 
     run:
