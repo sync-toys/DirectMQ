@@ -11,8 +11,17 @@ tasks:
         desc: Initialize the DirectMQ C++ SDK dependencies
         silent: true
         cmds:
+            - echo Installing dependencies
+
+            - echo Installing nanopb
             - rm -rf lib/nanopb
             - git clone https://github.com/nanopb/nanopb.git lib/nanopb
+
+            - echo installing catch2
+            - rm -rf lib/catch2
+            - git clone --branch v2.x https://github.com/catchorg/Catch2.git lib/catch2
+            - cd lib/catch2 && cmake -Bbuild -H. -DBUILD_TESTING=OFF
+            - cd lib/catch2 && cmake --build build/ --target install
 
     clean:
         desc: Clean the DirectMQ C++ SDK build directory
