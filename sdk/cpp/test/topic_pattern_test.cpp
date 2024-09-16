@@ -267,4 +267,39 @@ SCENARIO("topic patterns") {
             }
         }
     }
+
+    GIVEN("getDeduplicatedOverlappingTopicsDiff") {
+        WHEN("no overlapping topics provided") {
+            auto oldTopics = directmq::topics::internal::makeTopicsList({"topic/1", "topic/2", "topic/3"});
+            auto newTopics = directmq::topics::internal::makeTopicsList({"topic/4", "topic/5", "topic/6"});
+
+            THEN("it should return empty diff") {
+                auto diff = directmq::topics::getDeduplicatedOverlappingTopicsDiff(oldTopics, newTopics);
+
+                REQUIRE(directmq::topics::internal::compareTopicLists(diff.added, newTopics) == true);
+                REQUIRE(directmq::topics::internal::compareTopicLists(diff.removed, oldTopics) == true);
+            }
+        }
+
+        WHEN("overlapping topics provided") {
+            auto oldTopics = directmq::topics::internal::makeTopicsList({"topic/0", "topic/1", "topic/2", "topic/3"});
+            auto newTopics = directmq::topics::internal::makeTopicsList({"topic/2", "topic/3", "topic/4", "topic/5"});
+
+            THEN("it should return diff with added and removed topics") {
+                auto diff = directmq::topics::getDeduplicatedOverlappingTopicsDiff(oldTopics, newTopics);
+
+                std::vector<std::string> addedTopics = {"topic/4", "topic/5"};
+                std::vector<std::string> removedTopics = {"topic/0", "topic/1"};
+
+                auto addedResult = directmq::topics::internal::compareTopicLists(
+                    directmq::topics::internal::makeTopicsList(addedTopics), diff.added);
+
+                auto removedResult = directmq::topics::internal::compareTopicLists(
+                    directmq::topics::internal::makeTopicsList(removedTopics), diff.removed);
+
+                REQUIRE(addedResult == true);
+                REQUIRE(removedResult == true);
+            }
+        }
+    }
 }

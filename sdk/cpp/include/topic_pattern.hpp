@@ -411,14 +411,47 @@ std::list<std::shared_ptr<std::string>> deduplicateOverlappingTopics(
     return result;
 }
 
-// struct OverlappingTopicsDiff {
-//     std::list<std::string> added;
-//     std::list<std::string> removed;
-// };
+struct OverlappingTopicsDiff {
+    std::list<std::shared_ptr<std::string>> added;
+    std::list<std::shared_ptr<std::string>> removed;
+};
 
-// OverlappingTopicsDiff getDeduplicatedOverlappingTopicsDiff(
-//     const std::list<std::string>& oldTopics,
-//     const std::list<std::string>& newTopics) {
-//     return OverlappingTopicsDiff();
-// }
+OverlappingTopicsDiff getDeduplicatedOverlappingTopicsDiff(
+    const std::list<std::shared_ptr<std::string>>& oldTopics,
+    const std::list<std::shared_ptr<std::string>>& newTopics) {
+        auto oldDeduplicatedTopics = deduplicateOverlappingTopics(oldTopics);
+        auto newDeduplicatedTopics = deduplicateOverlappingTopics(newTopics);
+
+        OverlappingTopicsDiff diff;
+
+        for (const auto& oldTopic : oldDeduplicatedTopics) {
+            bool found = false;
+            for (const auto& newTopic : newDeduplicatedTopics) {
+                if (*oldTopic == *newTopic) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                diff.removed.push_back(oldTopic);
+            }
+        }
+
+        for (const auto& newTopic : newDeduplicatedTopics) {
+            bool found = false;
+            for (const auto& oldTopic : oldDeduplicatedTopics) {
+                if (*newTopic == *oldTopic) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                diff.added.push_back(newTopic);
+            }
+        }
+
+        return diff;
+    }
 }  // namespace directmq::topics
