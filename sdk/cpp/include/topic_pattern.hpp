@@ -48,12 +48,12 @@ bool includesDirtySegmentNames(const std::string& pattern) {
             continue;
         }
 
-        if (i != 0 && pattern[i - 1] != '/' && pattern[i - 1] != '*') {
+        if (i != 0 && (pattern[i - 1] != '/' && pattern[i - 1] != '*')) {
             return true;
         }
 
         if (i != pattern.size() - 1 &&
-            (pattern[i + 1] != '/' || pattern[i + 1] != '*')) {
+            (pattern[i + 1] != '/' && pattern[i + 1] != '*')) {
             return true;
         }
     }
@@ -90,19 +90,13 @@ class TopicSegment {
         }
 
         firstCharacterIndex = lastCharacterIndex + 1;
+
         lastCharacterIndex = pattern->find_first_of('/', firstCharacterIndex);
-
-        return *this;
-    }
-
-    TopicSegment* operator--() {
-        if (firstCharacterIndex == 0) {
-            throw std::out_of_range(
-                "Cannot decrement past the beginning of the topic pattern");
+        if (lastCharacterIndex == std::string::npos) {
+            lastCharacterIndex = pattern->size();
         }
 
-        lastCharacterIndex = firstCharacterIndex - 1;
-        firstCharacterIndex = pattern->find_last_of('/', lastCharacterIndex);
+        return *this;
     }
 
     bool operator==(const TopicSegment& other) const {
@@ -115,9 +109,12 @@ class TopicSegment {
             return false;
         }
 
-        return memcmp(pattern->c_str() + firstCharacterIndex,
-                      pattern->c_str() + other.firstCharacterIndex,
-                      size()) == 0;
+        auto patternSegment = pattern->c_str() + firstCharacterIndex;
+        auto otherSegment = other.pattern->c_str() + other.firstCharacterIndex;
+
+        auto result = memcmp(patternSegment, otherSegment, size());
+
+        return result == 0;
     }
 
     bool operator!=(const TopicSegment& other) const {
@@ -164,11 +161,19 @@ class TopicPattern {
         : pattern(std::make_shared<std::string>(pattern)) {}
 
     TopicSegment begin() {
+        if (pattern->find('/') == std::string::npos) {
+            return TopicSegment(pattern, 0, pattern->size());
+        }
+
         size_t firstTopicEnd = pattern->find_first_of('/');
         return TopicSegment(pattern, 0, firstTopicEnd);
     }
 
     TopicSegment end() {
+        if (pattern->find('/') == std::string::npos) {
+            return TopicSegment(pattern, 0, pattern->size());
+        }
+
         size_t lastTopicStart = pattern->find_last_of('/');
         return TopicSegment(pattern, lastTopicStart + 1, pattern->size());
     }
@@ -244,9 +249,28 @@ bool matchTopicPattern(const std::string& patternTopic,
         if (!patternSegment.matches(targetSegment)) {
             return false;
         }
+
+        ++patternSegment;
+        ++targetSegment;
     }
 
-    return patternSegment.isLast() && targetSegment.isLast();
+    if (!patternSegment.isLast()) {
+        return false;
+    }
+
+    if (patternSegment.isWildcard() && targetSegment.isLast()) {
+        return true;
+    }
+
+    if (patternSegment.isSuperWildcard()) {
+        return true;
+    }
+
+    if (targetSegment.isLast()) {
+        return patternSegment.matches(targetSegment);
+    }
+
+    return false;
 }
 
 // bool isSubtopicPattern(const std::string& topLevelPattern,

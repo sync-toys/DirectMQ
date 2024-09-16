@@ -70,91 +70,92 @@ SCENARIO("topic patterns") {
             }
         }
 
-        // WHEN("simple not matching topic patterns provided") {
-        //     auto testCase =
-        //         GENERATE(TopicPatternTestCase{"topic", "another"},
-        //                  TopicPatternTestCase{"topic", "topic/level"},
-        //                  TopicPatternTestCase{"topic/level", "topic"},
-        //                  TopicPatternTestCase{"topic/level", "level"},
-        //                  TopicPatternTestCase{"topic/level", "topic/level/1"});
+        WHEN("simple not matching topic patterns provided") {
+            auto testCase =
+                GENERATE(TopicPatternTestCase{"topic", "another"},
+                         TopicPatternTestCase{"topic", "topic/level"},
+                         TopicPatternTestCase{"topic/level", "topic"},
+                         TopicPatternTestCase{"topic/level", "level"},
+                         TopicPatternTestCase{"topic/level/1", "topic/level/2"},
+                         TopicPatternTestCase{"topic/level", "topic/level/1"});
 
-        //     THEN("it should return false") {
-        //         INFO("Pattern: " << testCase.pattern);
-        //         INFO("Topic: " << testCase.topic);
-        //         REQUIRE(directmq::topics::matchTopicPattern(
-        //                     testCase.pattern, testCase.topic) == false);
-        //     }
-        // }
+            THEN("it should return false") {
+                INFO("Pattern: " << testCase.pattern);
+                INFO("Topic: " << testCase.topic);
+                REQUIRE(directmq::topics::matchTopicPattern(
+                            testCase.pattern, testCase.topic) == false);
+            }
+        }
 
-        // WHEN("single wildcard matching topic patterns provided") {
-        //     auto testCase = GENERATE(
-        //         TopicPatternTestCase{"*", "topic"},
-        //         TopicPatternTestCase{"topic/*", "topic/level"},
-        //         TopicPatternTestCase{"topic/*/1", "topic/level/1"},
-        //         TopicPatternTestCase{"topic/*/*", "topic/level/1"},
-        //         TopicPatternTestCase{"*/topic", "test/topic"},
-        //         TopicPatternTestCase{"*/topic/*", "test/topic/level"},
-        //         TopicPatternTestCase{"*/topic/*/*", "test/topic/level/1"},
-        //         TopicPatternTestCase{"*/topic/*/another",
-        //                              "test/topic/1/another"});
+        WHEN("single wildcard matching topic patterns provided") {
+            auto testCase = GENERATE(
+                TopicPatternTestCase{"*", "topic"},
+                TopicPatternTestCase{"topic/*", "topic/level"},
+                TopicPatternTestCase{"topic/*/1", "topic/level/1"},
+                TopicPatternTestCase{"topic/*/*", "topic/level/1"},
+                TopicPatternTestCase{"*/topic", "test/topic"},
+                TopicPatternTestCase{"*/topic/*", "test/topic/level"},
+                TopicPatternTestCase{"*/topic/*/*", "test/topic/level/1"},
+                TopicPatternTestCase{"*/topic/*/another",
+                                     "test/topic/1/another"});
 
-        //     THEN("it should return true") {
-        //         INFO("Pattern: " << testCase.pattern);
-        //         INFO("Topic: " << testCase.topic);
-        //         REQUIRE(directmq::topics::matchTopicPattern(
-        //                     testCase.pattern, testCase.topic) == true);
-        //     }
-        // }
+            THEN("it should return true") {
+                INFO("Pattern: " << testCase.pattern);
+                INFO("Topic: " << testCase.topic);
+                REQUIRE(directmq::topics::matchTopicPattern(
+                            testCase.pattern, testCase.topic) == true);
+            }
+        }
 
-        // WHEN("single wildcard not matching topic patterns provided") {
-        //     auto testCase =
-        //         GENERATE(TopicPatternTestCase{"*", "topic/level"},
-        //                  TopicPatternTestCase{"topic/*", "topic"},
-        //                  TopicPatternTestCase{"topic/*", "topic/level/1"},
-        //                  TopicPatternTestCase{"topic/*/*", "topic/level"},
-        //                  TopicPatternTestCase{"*/topic", "topic"},
-        //                  TopicPatternTestCase{"*/topic/*", "topic/123"},
-        //                  TopicPatternTestCase{"*/topic/*/*", "topic"});
+        WHEN("single wildcard not matching topic patterns provided") {
+            auto testCase =
+                GENERATE(TopicPatternTestCase{"*", "topic/level"},
+                         TopicPatternTestCase{"topic/*", "topic"},
+                         TopicPatternTestCase{"topic/*", "topic/level/1"},
+                         TopicPatternTestCase{"topic/*/*", "topic/level"},
+                         TopicPatternTestCase{"*/topic", "topic"},
+                         TopicPatternTestCase{"*/topic/*", "topic/123"},
+                         TopicPatternTestCase{"*/topic/*/*", "topic"});
 
-        //     THEN("it should return false") {
-        //         INFO("Pattern: " << testCase.pattern);
-        //         INFO("Topic: " << testCase.topic);
-        //         REQUIRE(directmq::topics::matchTopicPattern(
-        //                     testCase.pattern, testCase.topic) == false);
-        //     }
-        // }
+            THEN("it should return false") {
+                INFO("Pattern: " << testCase.pattern);
+                INFO("Topic: " << testCase.topic);
+                REQUIRE(directmq::topics::matchTopicPattern(
+                            testCase.pattern, testCase.topic) == false);
+            }
+        }
 
-        // WHEN("double wildcard matching topic patterns provided") {
-        //     auto testCase = GENERATE(
-        //         TopicPatternTestCase{"**", "topic"},
-        //         TopicPatternTestCase{"**", "topic/level/three"},
-        //         TopicPatternTestCase{"topic/**/1", "topic/level/1"},
-        //         TopicPatternTestCase{"**/topic", "test/topic"},
-        //         TopicPatternTestCase{"**/topic/**", "test/1/topic/level/2"},
-        //         TopicPatternTestCase{"part1/**/part2",
-        //                              "part1/some/other/segments/part2"});
+        WHEN("double wildcard matching topic patterns provided") {
+            auto testCase = GENERATE(
+                TopicPatternTestCase{"**", "topic"},
+                TopicPatternTestCase{"**", "topic/level/three"},
+                TopicPatternTestCase{"topic/**/1", "topic/level/1"},
+                TopicPatternTestCase{"**/topic", "test/topic"},
+                TopicPatternTestCase{"**/topic/**", "test/1/topic/level/2"},
+                TopicPatternTestCase{"part1/**/part2",
+                                     "part1/some/other/segments/part2"});
 
-        //     THEN("it should return true") {
-        //         INFO("Pattern: " << testCase.pattern);
-        //         INFO("Topic: " << testCase.topic);
-        //         REQUIRE(directmq::topics::matchTopicPattern(
-        //                     testCase.pattern, testCase.topic) == true);
-        //     }
-        // }
+            THEN("it should return true") {
+                INFO("Pattern: " << testCase.pattern);
+                INFO("Topic: " << testCase.topic);
+                REQUIRE(directmq::topics::matchTopicPattern(
+                            testCase.pattern, testCase.topic) == true);
+            }
+        }
 
-        // WHEN("double wildcard not matching topic patterns provided") {
-        //     auto testCase = GENERATE(
-        //         TopicPatternTestCase{"topic/**/1", "topic/level"},
-        //         TopicPatternTestCase{"**/topic", "topic/pattern"},
-        //         TopicPatternTestCase{"**/topic/**", "test/1/level/2"},
-        //         TopicPatternTestCase{"part1/**/part2", "part1/part2"});
+        WHEN("double wildcard not matching topic patterns provided") {
+            auto testCase = GENERATE(
+                TopicPatternTestCase{"topic/**/1", "topic/level"},
+                TopicPatternTestCase{"**/topic", "topic/pattern"},
+                TopicPatternTestCase{"**/topic/**", "test/1/level/2"},
+                TopicPatternTestCase{"part1/**/part2", "part1/part2"});
 
-        //     THEN("it should return false") {
-        //         INFO("Pattern: " << testCase.pattern);
-        //         INFO("Topic: " << testCase.topic);
-        //         REQUIRE(directmq::topics::matchTopicPattern(
-        //                     testCase.pattern, testCase.topic) == false);
-        //     }
-        // }
+            THEN("it should return false") {
+                INFO("Pattern: " << testCase.pattern);
+                INFO("Topic: " << testCase.topic);
+                REQUIRE(directmq::topics::matchTopicPattern(
+                            testCase.pattern, testCase.topic) == false);
+            }
+        }
     }
 }
