@@ -1,12 +1,12 @@
 {
-    "name": "nix-devcontainer",
+    "name": "DirectMQ",
     "dockerFile": "../Dockerfile",
     "workspaceFolder": "/workspace",
 
     "userEnvProbe": "loginShell",
     "updateRemoteUserUID": false,
 
-    "onCreateCommand": "sudo chmod +x /host/workspace/.devcontainer/on-create.sh && sudo bash /host/workspace/.devcontainer/on-create.sh",
+    "onCreateCommand": "chmod +x /host/workspace/.devcontainer/on-create.sh && bash /host/workspace/.devcontainer/on-create.sh",
     "waitFor": "onCreateCommand",
 
     "workspaceMount": "source=${localWorkspaceFolder},target=/host/workspace,type=bind,consistency=cached",
@@ -20,15 +20,6 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                // select nix environment
-                "arrterian.nix-env-selector",
-
-                // nix formatting and dev support
-                "jnoortheen.nix-ide",
-
-                // run command on save (needed to reload nix environment)
-                "fsevenm.run-it-on",
-
                 // go language support
                 "golang.go",
 

@@ -1,13 +1,20 @@
-FROM ghcr.io/xtruder/nix-devcontainer:latest
+FROM ubuntu:24.04
 
 WORKDIR /workspace
 
-RUN apt-get update && apt-get install -y gdb
-RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+RUN apt update && apt install -y \
+    curl \
+    gcc \
+    gdb \
+    catch2 \
+    cmake \
+    clang-tools \
+    python3 \
+    python3-setuptools \
+    protobuf-compiler
 
-# Copy the flake.nix and flake.lock files and install the dependencies
-COPY --chown=1000:1000 ./flake.* ./
-RUN nix develop
+RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+RUN mv ./bin/task /usr/local/bin/task
 
 # Clean /workspace directory in preparation to run on-create.sh script
 RUN rm -rf /workspace/*
