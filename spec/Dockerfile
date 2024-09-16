@@ -5,6 +5,7 @@ FROM golang:1.22.2
 
 WORKDIR /directmq
 
+RUN apt-get update && apt-get install -y gdb
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
 RUN go install github.com/onsi/ginkgo/v2/ginkgo@2.17.2
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
