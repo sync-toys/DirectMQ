@@ -3,8 +3,10 @@ FROM ubuntu:24.04
 WORKDIR /workspace
 
 RUN apt update && apt install -y \
+    build-essential \
     curl \
     gcc \
+    g++ \
     gdb \
     catch2 \
     cmake \
