@@ -1,7 +1,5 @@
-include(CTest)
 
 find_package(Catch2 REQUIRED)
-include(Catch)
 
 add_executable(directmq-sdk-test
   main.cpp
