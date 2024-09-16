@@ -273,10 +273,73 @@ bool matchTopicPattern(const std::string& patternTopic,
     return false;
 }
 
-// bool isSubtopicPattern(const std::string& topLevelPattern,
-//                        const std::string& subtopicPattern) {
-//     return false;
-// }
+
+bool isSubtopicPattern(const std::string& topLevelPattern,
+                       const std::string& subtopicPattern) {
+    internal::TopicPattern topPattern(topLevelPattern);
+    internal::TopicPattern subPattern(subtopicPattern);
+
+    auto topSegment = topPattern.begin();
+    auto subSegment = subPattern.begin();
+
+    while (topSegment != topPattern.end() && subSegment != subPattern.end()) {
+        if (topSegment.isSuperWildcard()) {
+            ++topSegment;
+            internal::skipTargetSegmentsUntilExpected(subSegment, topSegment);
+            continue;
+        }
+
+        if (topSegment.isWildcard() && subSegment.isSuperWildcard()) {
+            return false;
+        }
+
+        if (topSegment.isWildcard()) {
+            ++topSegment;
+            ++subSegment;
+            continue;
+        }
+
+        if (subSegment.isWildcard()) {
+            return false;
+        }
+
+        if (!topSegment.matches(subSegment)) {
+            return false;
+        }
+
+        ++topSegment;
+        ++subSegment;
+    }
+
+    if (topSegment.isLast() && topSegment.isSuperWildcard()) {
+        return true;
+    }
+
+    if (topSegment.isLast() && subSegment.isLast() && topSegment.matches(subSegment)) {
+        return true;
+    }
+
+    return false;
+}
+
+enum class DetermineTopLevelTopicPatternResult : char {
+    LEFT = -1,
+    NONE = 0,
+    RIGHT = 1,
+};
+
+DetermineTopLevelTopicPatternResult determineTopLevelTopicPattern(
+    const std::string& left, const std::string& right) {
+        if (isSubtopicPattern(left, right)) {
+            return DetermineTopLevelTopicPatternResult::LEFT;
+        }
+
+        if (isSubtopicPattern(right, left)) {
+            return DetermineTopLevelTopicPatternResult::RIGHT;
+        }
+
+        return DetermineTopLevelTopicPatternResult::NONE;
+}
 
 // std::list<std::string> deduplicateOverlappingTopics(
 //     const std::list<std::string>& topics) {

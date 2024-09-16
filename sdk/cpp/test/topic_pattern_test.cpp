@@ -158,4 +158,89 @@ SCENARIO("topic patterns") {
             }
         }
     }
+
+    GIVEN("isSubtopicPattern") {
+        class SubtopicPatternTestCase {
+            public:
+                std::string topLevelPattern;
+                std::string subtopicPattern;
+        };
+
+        auto testCase = GENERATE(
+            // simple single wildcard
+            SubtopicPatternTestCase{"*", "topic"},
+            SubtopicPatternTestCase{"*/*", "topic/subtopic"},
+            SubtopicPatternTestCase{"topic/*", "topic/subtopic"},
+
+            // complex single wildcard
+            SubtopicPatternTestCase{"*/*", "topic/*"},
+            SubtopicPatternTestCase{"*/*", "*/topic"},
+            SubtopicPatternTestCase{"topic/*/*/*", "topic/*/level/*"},
+
+            // simple double wildcard
+            SubtopicPatternTestCase{"**", "topic"},
+            SubtopicPatternTestCase{"**", "topic/subtopic"},
+            SubtopicPatternTestCase{"part1/**/part2", "part1/some/topics/inside/part2"},
+            SubtopicPatternTestCase{"**/topic/**", "some/topic/inside"},
+            SubtopicPatternTestCase{"**/topic/**", "some/random/topic/inside/string"},
+            SubtopicPatternTestCase{"part1/**/part2/**/part3", "part1/x1/x2/part2/x3/x4/part3"},
+
+            // complex double wildcard
+            SubtopicPatternTestCase{"topic/**", "topic/**/subtopic"},
+            SubtopicPatternTestCase{"**/subtopic", "topic/**/subtopic"},
+            SubtopicPatternTestCase{"topic/**/subtopic", "topic/**/other/subtopic"},
+            SubtopicPatternTestCase{"topic/**/subtopic", "topic/**/other/**/subtopic"},
+
+            // mixed single and double wildcard
+            SubtopicPatternTestCase{"topic/**/subtopic/*", "topic/**/subtopic/level"},
+            SubtopicPatternTestCase{"topic/**/subtopic", "topic/*/subtopic"},
+            SubtopicPatternTestCase{"topic/**/subtopic", "topic/*/something/subtopic"},
+            SubtopicPatternTestCase{"topic/**/subtopic/*", "topic/*/subtopic/*"});
+
+        WHEN("real subtopic patterns provided") {
+            THEN("it should return true") {
+                INFO("Top level pattern: " << testCase.topLevelPattern);
+                INFO("Subtopic pattern: " << testCase.subtopicPattern);
+                REQUIRE(directmq::topics::isSubtopicPattern(
+                            testCase.topLevelPattern, testCase.subtopicPattern) ==
+                        true);
+            }
+        }
+
+        WHEN("fake subtopic patterns provided") {
+            THEN("it should return false") {
+                INFO("Top level pattern: " << testCase.subtopicPattern);
+                INFO("Subtopic pattern: " << testCase.topLevelPattern);
+                REQUIRE(directmq::topics::isSubtopicPattern(
+                            testCase.subtopicPattern, testCase.topLevelPattern) ==
+                        false);
+            }
+        }
+    }
+
+    GIVEN("determineTopLevelTopicPattern") {
+        WHEN("left topic pattern is the top level") {
+            THEN("it should return LEFT") {
+                REQUIRE(directmq::topics::determineTopLevelTopicPattern(
+                            "topic/*", "topic/level") ==
+                        directmq::topics::DetermineTopLevelTopicPatternResult::LEFT);
+            }
+        }
+
+        WHEN("right topic pattern is the top level") {
+            THEN("it should return RIGHT") {
+                REQUIRE(directmq::topics::determineTopLevelTopicPattern(
+                            "topic/level", "topic/*") ==
+                        directmq::topics::DetermineTopLevelTopicPatternResult::RIGHT);
+            }
+        }
+
+        WHEN("no top level topic pattern") {
+            THEN("it should return NONE") {
+                REQUIRE(directmq::topics::determineTopLevelTopicPattern(
+                            "topic/level", "topic/another") ==
+                        directmq::topics::DetermineTopLevelTopicPatternResult::NONE);
+            }
+        }
+    }
 }
