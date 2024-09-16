@@ -243,4 +243,28 @@ SCENARIO("topic patterns") {
             }
         }
     }
+
+    GIVEN("deduplicateOverlappingTopics") {
+        WHEN("no overlapping topics provided") {
+            auto topics = directmq::topics::internal::makeTopicsList({"topic/1", "topic/2", "topic/3"});
+
+            THEN("it should return the same list") {
+                auto deduplicatedTopics = directmq::topics::deduplicateOverlappingTopics(topics);
+                auto result = directmq::topics::internal::compareTopicLists(topics, deduplicatedTopics);
+                REQUIRE(result == true);
+            }
+        }
+
+        WHEN("overlapping topics provided") {
+            auto topics = directmq::topics::internal::makeTopicsList({"topic/1", "topic/1/level", "topic/2", "topic/*", "topic/3", "topic/1/level"});
+
+            THEN("it should return deduplicated list") {
+                auto deduplicatedTopics = directmq::topics::deduplicateOverlappingTopics(topics);
+                auto result = directmq::topics::internal::compareTopicLists(
+                    directmq::topics::internal::makeTopicsList({"topic/*", "topic/1/level"}), deduplicatedTopics);
+
+                REQUIRE(result == true);
+            }
+        }
+    }
 }

@@ -185,6 +185,37 @@ void skipTargetSegmentsUntilExpected(TopicSegment& segmentToSkip,
         ++segmentToSkip;
     }
 }
+
+
+std::list<std::shared_ptr<std::string>> makeTopicsList(
+    const std::vector<std::string>& topics) {
+    std::list<std::shared_ptr<std::string>> result;
+    for (const auto& topic : topics) {
+        result.push_back(std::make_shared<std::string>(topic));
+    }
+    return result;
+}
+
+bool compareTopicLists(const std::list<std::shared_ptr<std::string>>& left,
+                       const std::list<std::shared_ptr<std::string>>& right) {
+    if (left.size() != right.size()) {
+        return false;
+    }
+
+    auto leftIt = left.begin();
+    auto rightIt = right.begin();
+
+    while (leftIt != left.end() && rightIt != right.end()) {
+        if (**leftIt != **rightIt) {
+            return false;
+        }
+
+        ++leftIt;
+        ++rightIt;
+    }
+
+    return true;
+}
 }  // namespace internal
 
 // bool isCorrectTopic(const std::string& topic) {
@@ -341,10 +372,44 @@ DetermineTopLevelTopicPatternResult determineTopLevelTopicPattern(
         return DetermineTopLevelTopicPatternResult::NONE;
 }
 
-// std::list<std::string> deduplicateOverlappingTopics(
-//     const std::list<std::string>& topics) {
-//     return std::list<std::string>();
-// }
+std::list<std::shared_ptr<std::string>> deduplicateOverlappingTopics(
+    const std::list<std::shared_ptr<std::string>>& topics) {
+    std::list<std::shared_ptr<std::string>> result;
+
+    for (const auto& topic : topics) {
+        bool addAsTopLevel = true;
+        std::list<std::shared_ptr<std::string>> toRemove;
+
+        for (const auto& existingTopic : result) {
+            if (topic.get() == existingTopic.get()) {
+                addAsTopLevel = false;
+                continue;
+            }
+
+            auto topLevel = determineTopLevelTopicPattern(*topic, *existingTopic);
+            if (topLevel == DetermineTopLevelTopicPatternResult::NONE) {
+                continue;
+            }
+
+            if (topLevel == DetermineTopLevelTopicPatternResult::LEFT) {
+                toRemove.push_back(existingTopic);
+                continue;
+            }
+
+            addAsTopLevel = false;
+        }
+
+        for (const auto& topicToRemove : toRemove) {
+            result.remove(topicToRemove);
+        }
+
+        if (addAsTopLevel) {
+            result.push_back(topic);
+        }
+    }
+
+    return result;
+}
 
 // struct OverlappingTopicsDiff {
 //     std::list<std::string> added;
