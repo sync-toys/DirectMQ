@@ -23,7 +23,7 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
                 directmq_v1_SupportedProtocolVersions encoded =
                     *frame.message.supported_protocol_versions;
 
-                std::list<uint32_t> supportedVersions;
+                std::vector<uint32_t> supportedVersions;
                 for (size_t i = 0;
                      i < encoded.supported_protocol_versions_count; i++) {
                     supportedVersions.push_back(
@@ -128,26 +128,26 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
     }
 
    public:
-    DecodingResult readMessage(portal::PacketReader* packetReader,
-                               DecodingHandler* handler) {
-        auto packet = packetReader->readPacket();
-        if (packet.size == 0) {
+    DecodingResult decodePacket(std::shared_ptr<portal::Packet> packet,
+                                DecodingHandler* handler) {
+        if (packet->size == 0) {
             return DecodingResult{nullptr};
         }
 
         directmq_v1_DataFrame frame = directmq_v1_DataFrame_init_zero;
 
-        pb_istream_t stream = pb_istream_from_buffer(packet.data, packet.size);
+        pb_istream_t stream =
+            pb_istream_from_buffer(packet->data, packet->size);
         bool successfull =
             pb_decode(&stream, directmq_v1_DataFrame_fields, &frame);
 
         if (!successfull) {
             auto error = PB_GET_ERROR(&stream);
             messages::MalformedMessage malformedMessage{
-                .bytes = std::vector<uint8_t>(packet.size),
+                .bytes = std::vector<uint8_t>(packet->size),
                 .error = std::string(error)};
 
-            std::copy(packet.data, packet.data + packet.size,
+            std::copy(packet->data, packet->data + packet->size,
                       malformedMessage.bytes.begin());
 
             handler->onMalformedMessage(malformedMessage);

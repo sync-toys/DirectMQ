@@ -186,18 +186,18 @@ void skipTargetSegmentsUntilExpected(TopicSegment& segmentToSkip,
     }
 }
 
-
-std::list<std::shared_ptr<std::string>> makeTopicsList(
-    const std::vector<std::string>& topics) {
-    std::list<std::shared_ptr<std::string>> result;
+std::list<std::shared_ptr<const std::string>> makeTopicsList(
+    const std::vector<std::string> topics) {
+    std::list<std::shared_ptr<const std::string>> result;
     for (const auto& topic : topics) {
         result.push_back(std::make_shared<std::string>(topic));
     }
     return result;
 }
 
-bool compareTopicLists(const std::list<std::shared_ptr<std::string>>& left,
-                       const std::list<std::shared_ptr<std::string>>& right) {
+bool compareTopicLists(
+    const std::list<std::shared_ptr<const std::string>>& left,
+    const std::list<std::shared_ptr<const std::string>>& right) {
     if (left.size() != right.size()) {
         return false;
     }
@@ -304,7 +304,6 @@ bool matchTopicPattern(const std::string& patternTopic,
     return false;
 }
 
-
 bool isSubtopicPattern(const std::string& topLevelPattern,
                        const std::string& subtopicPattern) {
     internal::TopicPattern topPattern(topLevelPattern);
@@ -346,7 +345,8 @@ bool isSubtopicPattern(const std::string& topLevelPattern,
         return true;
     }
 
-    if (topSegment.isLast() && subSegment.isLast() && topSegment.matches(subSegment)) {
+    if (topSegment.isLast() && subSegment.isLast() &&
+        topSegment.matches(subSegment)) {
         return true;
     }
 
@@ -361,24 +361,24 @@ enum class DetermineTopLevelTopicPatternResult : char {
 
 DetermineTopLevelTopicPatternResult determineTopLevelTopicPattern(
     const std::string& left, const std::string& right) {
-        if (isSubtopicPattern(left, right)) {
-            return DetermineTopLevelTopicPatternResult::LEFT;
-        }
+    if (isSubtopicPattern(left, right)) {
+        return DetermineTopLevelTopicPatternResult::LEFT;
+    }
 
-        if (isSubtopicPattern(right, left)) {
-            return DetermineTopLevelTopicPatternResult::RIGHT;
-        }
+    if (isSubtopicPattern(right, left)) {
+        return DetermineTopLevelTopicPatternResult::RIGHT;
+    }
 
-        return DetermineTopLevelTopicPatternResult::NONE;
+    return DetermineTopLevelTopicPatternResult::NONE;
 }
 
-std::list<std::shared_ptr<std::string>> deduplicateOverlappingTopics(
-    const std::list<std::shared_ptr<std::string>>& topics) {
-    std::list<std::shared_ptr<std::string>> result;
+std::list<std::shared_ptr<const std::string>> deduplicateOverlappingTopics(
+    const std::list<std::shared_ptr<const std::string>>& topics) {
+    std::list<std::shared_ptr<const std::string>> result;
 
     for (const auto& topic : topics) {
         bool addAsTopLevel = true;
-        std::list<std::shared_ptr<std::string>> toRemove;
+        std::list<std::shared_ptr<const std::string>> toRemove;
 
         for (const auto& existingTopic : result) {
             if (topic.get() == existingTopic.get()) {
@@ -386,7 +386,8 @@ std::list<std::shared_ptr<std::string>> deduplicateOverlappingTopics(
                 continue;
             }
 
-            auto topLevel = determineTopLevelTopicPattern(*topic, *existingTopic);
+            auto topLevel =
+                determineTopLevelTopicPattern(*topic, *existingTopic);
             if (topLevel == DetermineTopLevelTopicPatternResult::NONE) {
                 continue;
             }
@@ -412,46 +413,46 @@ std::list<std::shared_ptr<std::string>> deduplicateOverlappingTopics(
 }
 
 struct OverlappingTopicsDiff {
-    std::list<std::shared_ptr<std::string>> added;
-    std::list<std::shared_ptr<std::string>> removed;
+    std::list<std::shared_ptr<const std::string>> added;
+    std::list<std::shared_ptr<const std::string>> removed;
 };
 
 OverlappingTopicsDiff getDeduplicatedOverlappingTopicsDiff(
-    const std::list<std::shared_ptr<std::string>>& oldTopics,
-    const std::list<std::shared_ptr<std::string>>& newTopics) {
-        auto oldDeduplicatedTopics = deduplicateOverlappingTopics(oldTopics);
-        auto newDeduplicatedTopics = deduplicateOverlappingTopics(newTopics);
+    const std::list<std::shared_ptr<const std::string>>& oldTopics,
+    const std::list<std::shared_ptr<const std::string>>& newTopics) {
+    auto oldDeduplicatedTopics = deduplicateOverlappingTopics(oldTopics);
+    auto newDeduplicatedTopics = deduplicateOverlappingTopics(newTopics);
 
-        OverlappingTopicsDiff diff;
+    OverlappingTopicsDiff diff;
 
-        for (const auto& oldTopic : oldDeduplicatedTopics) {
-            bool found = false;
-            for (const auto& newTopic : newDeduplicatedTopics) {
-                if (*oldTopic == *newTopic) {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                diff.removed.push_back(oldTopic);
-            }
-        }
-
+    for (const auto& oldTopic : oldDeduplicatedTopics) {
+        bool found = false;
         for (const auto& newTopic : newDeduplicatedTopics) {
-            bool found = false;
-            for (const auto& oldTopic : oldDeduplicatedTopics) {
-                if (*newTopic == *oldTopic) {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                diff.added.push_back(newTopic);
+            if (*oldTopic == *newTopic) {
+                found = true;
+                break;
             }
         }
 
-        return diff;
+        if (!found) {
+            diff.removed.push_back(oldTopic);
+        }
     }
+
+    for (const auto& newTopic : newDeduplicatedTopics) {
+        bool found = false;
+        for (const auto& oldTopic : oldDeduplicatedTopics) {
+            if (*newTopic == *oldTopic) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            diff.added.push_back(newTopic);
+        }
+    }
+
+    return diff;
+}
 }  // namespace directmq::topics

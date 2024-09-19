@@ -30,9 +30,9 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
         pb_byte_t buffer[frameSize] = {0};
         auto stream = pb_ostream_from_buffer(buffer, frameSize);
 
-        portal::DataWriter* dataWriter = packetWriter.beginWrite(frameSize);
+        auto dataWriter = packetWriter.beginWrite(frameSize);
 
-        stream.state = dataWriter;
+        stream.state = dataWriter.get();
         stream.callback = [](pb_ostream_t* stream, const pb_byte_t* data,
                              const size_t size) {
             portal::DataWriter* dataWriter =
@@ -42,7 +42,6 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
 
         auto success = pb_encode(&stream, directmq_v1_DataFrame_fields, &frame);
         dataWriter->end();
-        delete dataWriter;
 
         if (!success) {
             return EncodingResult{PB_GET_ERROR(&stream)};
@@ -84,7 +83,7 @@ class EmbeddedProtocolEncoderImplementation : public Encoder {
         directmq_v1_SupportedProtocolVersions encoded =
             directmq_v1_SupportedProtocolVersions_init_zero;
 
-        auto supportedVersions = listToVector(message.supportedVersions);
+        auto supportedVersions = message.supportedVersions;
 
         encoded.supported_protocol_versions = supportedVersions.data();
         encoded.supported_protocol_versions_count = supportedVersions.size();

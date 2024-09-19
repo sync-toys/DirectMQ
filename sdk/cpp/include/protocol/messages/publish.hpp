@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "../../bytes.hpp"
 #include "data_frame.hpp"
 
 namespace directmq::protocol::messages {

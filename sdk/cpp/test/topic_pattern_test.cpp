@@ -144,11 +144,11 @@ SCENARIO("topic patterns") {
         }
 
         WHEN("double wildcard not matching topic patterns provided") {
-            auto testCase = GENERATE(
-                TopicPatternTestCase{"topic/**/1", "topic/level"},
-                TopicPatternTestCase{"**/topic", "topic/pattern"},
-                TopicPatternTestCase{"**/topic/**", "test/1/level/2"},
-                TopicPatternTestCase{"part1/**/part2", "part1/part2"});
+            auto testCase =
+                GENERATE(TopicPatternTestCase{"topic/**/1", "topic/level"},
+                         TopicPatternTestCase{"**/topic", "topic/pattern"},
+                         TopicPatternTestCase{"**/topic/**", "test/1/level/2"},
+                         TopicPatternTestCase{"part1/**/part2", "part1/part2"});
 
             THEN("it should return false") {
                 INFO("Pattern: " << testCase.pattern);
@@ -161,9 +161,9 @@ SCENARIO("topic patterns") {
 
     GIVEN("isSubtopicPattern") {
         class SubtopicPatternTestCase {
-            public:
-                std::string topLevelPattern;
-                std::string subtopicPattern;
+           public:
+            std::string topLevelPattern;
+            std::string subtopicPattern;
         };
 
         auto testCase = GENERATE(
@@ -180,30 +180,38 @@ SCENARIO("topic patterns") {
             // simple double wildcard
             SubtopicPatternTestCase{"**", "topic"},
             SubtopicPatternTestCase{"**", "topic/subtopic"},
-            SubtopicPatternTestCase{"part1/**/part2", "part1/some/topics/inside/part2"},
+            SubtopicPatternTestCase{"part1/**/part2",
+                                    "part1/some/topics/inside/part2"},
             SubtopicPatternTestCase{"**/topic/**", "some/topic/inside"},
-            SubtopicPatternTestCase{"**/topic/**", "some/random/topic/inside/string"},
-            SubtopicPatternTestCase{"part1/**/part2/**/part3", "part1/x1/x2/part2/x3/x4/part3"},
+            SubtopicPatternTestCase{"**/topic/**",
+                                    "some/random/topic/inside/string"},
+            SubtopicPatternTestCase{"part1/**/part2/**/part3",
+                                    "part1/x1/x2/part2/x3/x4/part3"},
 
             // complex double wildcard
             SubtopicPatternTestCase{"topic/**", "topic/**/subtopic"},
             SubtopicPatternTestCase{"**/subtopic", "topic/**/subtopic"},
-            SubtopicPatternTestCase{"topic/**/subtopic", "topic/**/other/subtopic"},
-            SubtopicPatternTestCase{"topic/**/subtopic", "topic/**/other/**/subtopic"},
+            SubtopicPatternTestCase{"topic/**/subtopic",
+                                    "topic/**/other/subtopic"},
+            SubtopicPatternTestCase{"topic/**/subtopic",
+                                    "topic/**/other/**/subtopic"},
 
             // mixed single and double wildcard
-            SubtopicPatternTestCase{"topic/**/subtopic/*", "topic/**/subtopic/level"},
+            SubtopicPatternTestCase{"topic/**/subtopic/*",
+                                    "topic/**/subtopic/level"},
             SubtopicPatternTestCase{"topic/**/subtopic", "topic/*/subtopic"},
-            SubtopicPatternTestCase{"topic/**/subtopic", "topic/*/something/subtopic"},
-            SubtopicPatternTestCase{"topic/**/subtopic/*", "topic/*/subtopic/*"});
+            SubtopicPatternTestCase{"topic/**/subtopic",
+                                    "topic/*/something/subtopic"},
+            SubtopicPatternTestCase{"topic/**/subtopic/*",
+                                    "topic/*/subtopic/*"});
 
         WHEN("real subtopic patterns provided") {
             THEN("it should return true") {
                 INFO("Top level pattern: " << testCase.topLevelPattern);
                 INFO("Subtopic pattern: " << testCase.subtopicPattern);
                 REQUIRE(directmq::topics::isSubtopicPattern(
-                            testCase.topLevelPattern, testCase.subtopicPattern) ==
-                        true);
+                            testCase.topLevelPattern,
+                            testCase.subtopicPattern) == true);
             }
         }
 
@@ -212,8 +220,8 @@ SCENARIO("topic patterns") {
                 INFO("Top level pattern: " << testCase.subtopicPattern);
                 INFO("Subtopic pattern: " << testCase.topLevelPattern);
                 REQUIRE(directmq::topics::isSubtopicPattern(
-                            testCase.subtopicPattern, testCase.topLevelPattern) ==
-                        false);
+                            testCase.subtopicPattern,
+                            testCase.topLevelPattern) == false);
             }
         }
     }
@@ -223,7 +231,8 @@ SCENARIO("topic patterns") {
             THEN("it should return LEFT") {
                 REQUIRE(directmq::topics::determineTopLevelTopicPattern(
                             "topic/*", "topic/level") ==
-                        directmq::topics::DetermineTopLevelTopicPatternResult::LEFT);
+                        directmq::topics::DetermineTopLevelTopicPatternResult::
+                            LEFT);
             }
         }
 
@@ -231,7 +240,8 @@ SCENARIO("topic patterns") {
             THEN("it should return RIGHT") {
                 REQUIRE(directmq::topics::determineTopLevelTopicPattern(
                             "topic/level", "topic/*") ==
-                        directmq::topics::DetermineTopLevelTopicPatternResult::RIGHT);
+                        directmq::topics::DetermineTopLevelTopicPatternResult::
+                            RIGHT);
             }
         }
 
@@ -239,29 +249,38 @@ SCENARIO("topic patterns") {
             THEN("it should return NONE") {
                 REQUIRE(directmq::topics::determineTopLevelTopicPattern(
                             "topic/level", "topic/another") ==
-                        directmq::topics::DetermineTopLevelTopicPatternResult::NONE);
+                        directmq::topics::DetermineTopLevelTopicPatternResult::
+                            NONE);
             }
         }
     }
 
     GIVEN("deduplicateOverlappingTopics") {
         WHEN("no overlapping topics provided") {
-            auto topics = directmq::topics::internal::makeTopicsList({"topic/1", "topic/2", "topic/3"});
+            auto topics = directmq::topics::internal::makeTopicsList(
+                {"topic/1", "topic/2", "topic/3"});
 
             THEN("it should return the same list") {
-                auto deduplicatedTopics = directmq::topics::deduplicateOverlappingTopics(topics);
-                auto result = directmq::topics::internal::compareTopicLists(topics, deduplicatedTopics);
+                auto deduplicatedTopics =
+                    directmq::topics::deduplicateOverlappingTopics(topics);
+                auto result = directmq::topics::internal::compareTopicLists(
+                    topics, deduplicatedTopics);
                 REQUIRE(result == true);
             }
         }
 
         WHEN("overlapping topics provided") {
-            auto topics = directmq::topics::internal::makeTopicsList({"topic/1", "topic/1/level", "topic/2", "topic/*", "topic/3", "topic/1/level"});
+            auto topics = directmq::topics::internal::makeTopicsList(
+                {"topic/1", "topic/1/level", "topic/2", "topic/*", "topic/3",
+                 "topic/1/level"});
 
             THEN("it should return deduplicated list") {
-                auto deduplicatedTopics = directmq::topics::deduplicateOverlappingTopics(topics);
+                auto deduplicatedTopics =
+                    directmq::topics::deduplicateOverlappingTopics(topics);
                 auto result = directmq::topics::internal::compareTopicLists(
-                    directmq::topics::internal::makeTopicsList({"topic/*", "topic/1/level"}), deduplicatedTopics);
+                    directmq::topics::internal::makeTopicsList(
+                        {"topic/*", "topic/1/level"}),
+                    deduplicatedTopics);
 
                 REQUIRE(result == true);
             }
@@ -270,32 +289,47 @@ SCENARIO("topic patterns") {
 
     GIVEN("getDeduplicatedOverlappingTopicsDiff") {
         WHEN("no overlapping topics provided") {
-            auto oldTopics = directmq::topics::internal::makeTopicsList({"topic/1", "topic/2", "topic/3"});
-            auto newTopics = directmq::topics::internal::makeTopicsList({"topic/4", "topic/5", "topic/6"});
+            auto oldTopics = directmq::topics::internal::makeTopicsList(
+                {"topic/1", "topic/2", "topic/3"});
+            auto newTopics = directmq::topics::internal::makeTopicsList(
+                {"topic/4", "topic/5", "topic/6"});
 
             THEN("it should return empty diff") {
-                auto diff = directmq::topics::getDeduplicatedOverlappingTopicsDiff(oldTopics, newTopics);
+                auto diff =
+                    directmq::topics::getDeduplicatedOverlappingTopicsDiff(
+                        oldTopics, newTopics);
 
-                REQUIRE(directmq::topics::internal::compareTopicLists(diff.added, newTopics) == true);
-                REQUIRE(directmq::topics::internal::compareTopicLists(diff.removed, oldTopics) == true);
+                REQUIRE(directmq::topics::internal::compareTopicLists(
+                            diff.added, newTopics) == true);
+                REQUIRE(directmq::topics::internal::compareTopicLists(
+                            diff.removed, oldTopics) == true);
             }
         }
 
         WHEN("overlapping topics provided") {
-            auto oldTopics = directmq::topics::internal::makeTopicsList({"topic/0", "topic/1", "topic/2", "topic/3"});
-            auto newTopics = directmq::topics::internal::makeTopicsList({"topic/2", "topic/3", "topic/4", "topic/5"});
+            auto oldTopics = directmq::topics::internal::makeTopicsList(
+                {"topic/0", "topic/1", "topic/2", "topic/3"});
+            auto newTopics = directmq::topics::internal::makeTopicsList(
+                {"topic/2", "topic/3", "topic/4", "topic/5"});
 
             THEN("it should return diff with added and removed topics") {
-                auto diff = directmq::topics::getDeduplicatedOverlappingTopicsDiff(oldTopics, newTopics);
+                auto diff =
+                    directmq::topics::getDeduplicatedOverlappingTopicsDiff(
+                        oldTopics, newTopics);
 
                 std::vector<std::string> addedTopics = {"topic/4", "topic/5"};
                 std::vector<std::string> removedTopics = {"topic/0", "topic/1"};
 
-                auto addedResult = directmq::topics::internal::compareTopicLists(
-                    directmq::topics::internal::makeTopicsList(addedTopics), diff.added);
+                auto addedResult =
+                    directmq::topics::internal::compareTopicLists(
+                        directmq::topics::internal::makeTopicsList(addedTopics),
+                        diff.added);
 
-                auto removedResult = directmq::topics::internal::compareTopicLists(
-                    directmq::topics::internal::makeTopicsList(removedTopics), diff.removed);
+                auto removedResult =
+                    directmq::topics::internal::compareTopicLists(
+                        directmq::topics::internal::makeTopicsList(
+                            removedTopics),
+                        diff.removed);
 
                 REQUIRE(addedResult == true);
                 REQUIRE(removedResult == true);

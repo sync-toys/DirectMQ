@@ -31,7 +31,7 @@ TEST_CASE(
     auto encodingResult = encoder.supportedProtocolVersions(message, portal);
     REQUIRE(encodingResult.error == nullptr);
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error == nullptr);
     REQUIRE(called);
@@ -59,7 +59,7 @@ TEST_CASE("init connection message embedded encoding and decoding") {
     auto encodingResult = encoder.initConnection(message, portal);
     REQUIRE(encodingResult.error == nullptr);
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error == nullptr);
     REQUIRE(called);
@@ -87,7 +87,7 @@ TEST_CASE("connection accepted message embedded encoding and decoding") {
     auto encodingResult = encoder.connectionAccepted(message, portal);
     REQUIRE(encodingResult.error == nullptr);
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error == nullptr);
     REQUIRE(called);
@@ -115,7 +115,7 @@ TEST_CASE("gracefully close message embedded encoding and decoding") {
     auto encodingResult = encoder.gracefullyClose(message, portal);
     REQUIRE(encodingResult.error == nullptr);
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error == nullptr);
     REQUIRE(called);
@@ -143,7 +143,7 @@ TEST_CASE("terminate network message embedded encoding and decoding") {
     auto encodingResult = encoder.terminateNetwork(message, portal);
     REQUIRE(encodingResult.error == nullptr);
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error == nullptr);
     REQUIRE(called);
@@ -176,7 +176,7 @@ TEST_CASE("publish message embedded encoding and decoding") {
     auto encodingResult = encoder.publish(message, portal);
     REQUIRE(encodingResult.error == nullptr);
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error == nullptr);
     REQUIRE(called);
@@ -202,7 +202,7 @@ TEST_CASE("subscribe message embedded encoding and decoding") {
     auto encodingResult = encoder.subscribe(message, portal);
     REQUIRE(encodingResult.error == nullptr);
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error == nullptr);
     REQUIRE(called);
@@ -228,7 +228,7 @@ TEST_CASE("unsubscribe message embedded encoding and decoding") {
     auto encodingResult = encoder.unsubscribe(message, portal);
     REQUIRE(encodingResult.error == nullptr);
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error == nullptr);
     REQUIRE(called);
@@ -241,12 +241,9 @@ TEST_CASE("embedded decoder should report malformed message") {
     auto decoder = embedded::EmbeddedProtocolDecoderImplementation();
     auto writer = portal.beginWrite(4);
 
-    auto malformed = new uint8_t[4]{1, 2, 3, 4};
+    uint8_t malformed[4] = {1, 2, 3, 4};
     writer->write(malformed, 4);
     writer->end();
-
-    delete[] malformed;
-    delete writer;
 
     bool callbackCalled = false;
 
@@ -258,7 +255,7 @@ TEST_CASE("embedded decoder should report malformed message") {
             callbackCalled = true;
         });
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error != nullptr);
     REQUIRE(callbackCalled == true);
@@ -285,7 +282,7 @@ TEST_CASE("embedded encoder correctly encodes traversed nodes correctly") {
     auto encodingResult = encoder.supportedProtocolVersions(message, portal);
     REQUIRE(encodingResult.error == nullptr);
 
-    auto decodingResult = decoder.readMessage(&portal, &handler);
+    auto decodingResult = decoder.decodePacket(portal.readPacket(), &handler);
 
     REQUIRE(decodingResult.error == nullptr);
 }
