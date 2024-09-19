@@ -27,25 +27,37 @@ tasks:
         desc: Clean the DirectMQ C++ SDK build directory
         silent: true
         cmds:
+            - echo "Cleaning build directory"
             - rm -rf build
 
     build:
         desc: Build the DirectMQ C++ SDK
         silent: true
         cmds:
+            - echo "Building DirectMQ C++ SDK"
             - cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
             - cmake --build build
 
-    lint:
-        desc: Lint the DirectMQ C++ SDK source code
+    format:
+        desc: Format the DirectMQ C++ SDK source code
         silent: true
         cmds:
+            - echo "Formatting source code"
             - find include src test -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | xargs clang-format -i -style=file
+
+    analyze:
+        desc: Run static analysis on the DirectMQ C++ SDK source code
+        silent: true
+        cmds:
+            - echo "Analyzing source code"
+            - cmake -B build -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            - find include src test -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | xargs clang-tidy -p build
 
     test:
         desc: Run the DirectMQ C++ SDK tests
         silent: true
         cmds:
+            - echo "Running C++ SDK tests"
             - cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
             - ctest --test-dir build --output-on-failure
 
@@ -69,11 +81,8 @@ tasks:
             - test/**/*.*
         cmds:
             - clear
-            - echo "Linting source code"
-            - task: lint
-            - echo "Cleaning build directory"
+            - task: format
+            # - task: analyze - TODO: Fix the clang-tidy warnings
             - task: clean
-            - echo "Building DirectMQ C++ SDK"
             - task: build
-            - echo "Running tests"
             - task: test
