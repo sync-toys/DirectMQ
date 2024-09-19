@@ -15,7 +15,7 @@ target_compile_options(directmq-sdk-test
 
 target_link_libraries(directmq-sdk-test PRIVATE
     protobuf-nanopb-static
-    dmq-proto-embedded
+    dmq_proto_embedded
     directmq-sdk
     Catch2::Catch2)
 

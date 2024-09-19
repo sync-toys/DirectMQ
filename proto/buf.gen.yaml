@@ -7,6 +7,6 @@ plugins:
 #     opt: target=ts
 #     out: /sdk/ts
   - plugin: nanopb
-    out: /sdk/cpp/lib/dmq-proto-embedded
+    out: /sdk/cpp/lib/dmq_proto_embedded
 #   - plugin: buf.build/community/protobuf-c:v1.5.0
 #     out: /sdk/cpp/lib/dmq-proto-efficient

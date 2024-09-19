@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(dmq-proto-embedded
+project(dmq_proto_embedded
   VERSION 1.0
   LANGUAGES CXX C)
 
@@ -11,15 +11,15 @@ file(
     directmq/v1/*.h
 )
 
-add_library(dmq-proto-embedded STATIC
+add_library(dmq_proto_embedded STATIC
     ${DMQ_PROTO_EMBEDDED_SOURCES}
 )
 
-target_link_libraries(dmq-proto-embedded PRIVATE
+target_link_libraries(dmq_proto_embedded PRIVATE
     protobuf-nanopb-static
 )
 
-target_include_directories(dmq-proto-embedded PUBLIC
+target_include_directories(dmq_proto_embedded PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/directmq/v1
 )

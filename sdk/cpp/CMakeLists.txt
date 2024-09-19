@@ -14,7 +14,7 @@ target_include_directories(directmq-sdk PUBLIC
 
 target_link_libraries(directmq-sdk PRIVATE
     protobuf-nanopb-static
-    dmq-proto-embedded)
+    dmq_proto_embedded)
 
 option(TESTING "Enable tests." ON)
 
