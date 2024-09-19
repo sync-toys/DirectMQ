@@ -67,7 +67,7 @@ func (n *networkEdgeStateConnecting) HandleTerminateNetwork(terminate TerminateN
 
 func (n *networkEdgeStateConnecting) OnSupportedProtocolVersions(message SupportedProtocolVersionsMessage) {
 	n.edge.info.BridgedNodeSupportedProtocolVersions = message.SupportedVersions
-	n.edge.info.NegotiatedProtocolVersion = PROTOCOL_VERSION
+	n.edge.info.NegotiatedProtocolVersion = PROTOCOL_VERSION // TODO: check if supports v1
 
 	if message.TTL == ONLY_DIRECT_CONNECTION_WITH_RESPONSE_TTL {
 		n.respondWithSupportedProtocolVersions(message)

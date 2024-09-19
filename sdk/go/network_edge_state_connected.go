@@ -17,7 +17,7 @@ func (n *networkEdgeStateConnected) OnSet() {
 
 func (n *networkEdgeStateConnected) exchangeAllNodeSubscriptions() {
 	for _, topic := range n.edge.network.GetAllSubscribedTopics() {
-		err := n.edge.protocol.Subscribe(SubscribeMessage{Topic: topic})
+		err := n.edge.protocol.Subscribe(SubscribeMessage{Topic: topic}) // TODO: add DataFrame
 		if err != nil {
 			n.edge.SetState(&networkEdgeStateDisconnecting{n.edge, "Failed to exchange subscriptions: " + err.Error()})
 			return

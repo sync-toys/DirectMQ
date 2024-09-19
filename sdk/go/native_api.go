@@ -42,6 +42,8 @@ func (n *nativeAPI) Publish(topic string, payload []byte, deliveryStrategy Deliv
 }
 
 func (n *nativeAPI) Subscribe(topic string, handler func(payload []byte)) SubscriptionID {
+    // TODO: check topic correctness
+
 	if handler == nil {
 		panic("handler cannot be nil")
 	}
