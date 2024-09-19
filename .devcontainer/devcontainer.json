@@ -33,7 +33,10 @@
                 "GitHub.copilot",
 
                 // editorconfig support
-                "EditorConfig.EditorConfig"
+                "EditorConfig.EditorConfig",
+
+                // clang tidy support
+                "cs128.cs128-clang-tidy"
             ]
         }
     }
