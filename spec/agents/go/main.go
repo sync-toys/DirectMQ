@@ -159,6 +159,8 @@ func handleSubscribeCommand(cmd dmqspecagent.SubscribeTopicCommand) {
 }
 
 func handleUnsubscribeCommand(cmd dmqspecagent.UnsubscribeTopicCommand) {
+	log("Unsubscribing from subscription ID: " + strconv.Itoa(int(cmd.SubscriptionID)))
+
 	node.Unsubscribe(cmd.SubscriptionID)
 }
 
