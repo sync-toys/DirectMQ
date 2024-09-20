@@ -171,7 +171,7 @@ func (f *websocketForwarder) runForwardingRoutine(
 			f.messageHandler(message)
 		}
 
-		if err := to.WriteMessage(websocket.TextMessage, data); err != nil {
+		if err := to.WriteMessage(websocket.BinaryMessage, data); err != nil {
 			return
 		}
 	}

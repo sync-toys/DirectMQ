@@ -77,7 +77,7 @@ func handleSetupCommand(cmd dmqspecagent.SetupCommand) {
 			HostTTL:                    directmq.TTL(cmd.TTL),
 			HostMaxIncomingMessageSize: cmd.MaxMessageSize,
 		},
-		directmq.NewProtobufJSONProtocol(),
+		directmq.NewProtobufBinaryProtocol(),
 	)
 
 	registerDiagnosticsHandlers()
@@ -96,7 +96,7 @@ func handleListenCommand(cmd dmqspecagent.ListenCommand) {
 	ctx = context.Background()
 
 	go func() {
-		err = dmqportals.WebsocketListen(u, dmqportals.TextMessages, node, ctx)
+		err = dmqportals.WebsocketListen(u, dmqportals.BinaryMessages, node, ctx)
 		if err != nil {
 			fatal("Failed to listen on websocket: " + err.Error())
 		}
@@ -112,7 +112,7 @@ func handleConnectCommand(cmd dmqspecagent.ConnectCommand) {
 	}
 
 	log("Connecting websocket")
-	wsPortal, err := dmqportals.WebsocketConnect(u, dmqportals.TextMessages)
+	wsPortal, err := dmqportals.WebsocketConnect(u, dmqportals.BinaryMessages)
 	if err != nil {
 		fatal("Failed to connect to websocket: " + err.Error())
 	}

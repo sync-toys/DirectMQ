@@ -40,7 +40,7 @@ var GomegaRecordingsComparator dmqspecagent.RecordingsComparator = func(
 var GinkgoRecordingsLogger RecordingsLogger = func(message []byte, fromNode, toNode string) {
 	formatter := fontColor(color.FgHiYellow)
 	logComm := dmqspec.CreateLogger("comm", formatter)
-	logComm("%s->%s: %s", fromNode, toNode, string(message))
+	logComm("%s->%s: %s", fromNode, toNode, dmqspecagent.DecodeBinaryToJSONString(message))
 }
 
 var GinkgoAgentLogger AgentLogger = func(log string, nodeID string) {

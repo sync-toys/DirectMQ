@@ -4,7 +4,44 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+
+	"github.com/sync-toys/DirectMQ/sdk/go/protocol"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
+
+func DecodeBinaryToJSON(payload []byte) interface{} {
+	// decode from binary protobuf
+	decodedBinary := new(protocol.DataFrame)
+	if err := proto.Unmarshal(payload, decodedBinary); err != nil {
+		panic("unable to decode message: " + err.Error())
+	}
+
+	// encode to json protobuf
+	encodedJSON, err := protojson.Marshal(decodedBinary)
+	if err != nil {
+		panic("unable to encode message: " + err.Error())
+	}
+
+	// decode from json to interface
+	var decodedJSON interface{}
+	if err := json.Unmarshal(encodedJSON, &decodedJSON); err != nil {
+		panic("unable to decode message: " + err.Error())
+	}
+
+	return decodedJSON
+}
+
+func DecodeBinaryToJSONString(payload []byte) string {
+	decodedJSON := DecodeBinaryToJSON(payload)
+
+	encodedJSON, err := json.Marshal(decodedJSON)
+	if err != nil {
+		panic("unable to encode message: " + err.Error())
+	}
+
+	return string(encodedJSON)
+}
 
 type ForwardedMessageSnapRecord struct {
 	From    string
@@ -34,16 +71,11 @@ func NewRecorder(
 	}
 }
 
-func (r *Recorder) Record(from string, to string, message []byte) {
-	var decoded interface{}
-	if err := json.Unmarshal(message, &decoded); err != nil {
-		panic("unable to unmarshal message: " + err.Error())
-	}
-
+func (r *Recorder) Record(from string, to string, payload []byte) {
 	r.recording = append(r.recording, ForwardedMessageSnapRecord{
 		From:    from,
 		To:      to,
-		Message: decoded,
+		Message: DecodeBinaryToJSON(payload),
 	})
 }
 
