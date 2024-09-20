@@ -2,7 +2,7 @@ package directmq
 
 import "math/rand"
 
-type SubscriptionID int
+type SubscriptionID int32
 
 type subscription[THandler any] struct {
 	ID           SubscriptionID
@@ -21,7 +21,7 @@ func newSubscriptionList[THandler any]() *subscriptionList[THandler] {
 }
 
 func (l *subscriptionList[THandler]) getRandomID() SubscriptionID {
-	id := SubscriptionID(rand.Int())
+	id := SubscriptionID(rand.Int31())
 
 	for _, subscription := range l.subscriptions {
 		if subscription.ID == id {
