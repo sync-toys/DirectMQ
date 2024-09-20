@@ -45,8 +45,9 @@ tasks:
             - echo Building the spec runner Docker image...
             - docker build -t directmq/spec-runner -f ./spec/Dockerfile .
 
-    spec:test:
-        desc: Run specification tests in docker container
+    spec:run:
+        desc: Run specification tests
+        internal: true
         silent: true
         cmds:
             - echo Removing any existing DirectMQ.Spec container instance...
@@ -55,14 +56,25 @@ tasks:
             - defer: docker rm -f DirectMQ.Spec || true
             - defer: echo Cleaning up...
 
+            - echo Forwarding ports {{range .FORWARD_PORTS}} -p {{ . }}:{{ . }} {{end}}
+
             - echo Running specification tests...
             - |
                 docker run \
                 --volume "$(pwd):/directmq" \
                 -t --name DirectMQ.Spec \
-                --network=bridge -p 2345:2345 \
+                --network=bridge \
+                {{range .FORWARD_PORTS}} -p {{ . }}:{{ . }} {{end}} \
                 directmq/spec-runner \
-                /bin/sh run-tests.sh
+                {{.COMMAND}}
 
             - echo Specification tests done
 
+    spec:test:
+        desc: Run specification tests in docker container
+        silent: true
+        cmds:
+            - task: spec:run
+              vars:
+                  COMMAND: /bin/sh run-tests.sh
+                  FORWARD_PORTS: [2345]
