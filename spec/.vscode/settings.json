@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "/workspace/spec/agents/cpp"
+    "cmake.sourceDirectory": "/workspace/spec/agents/cpp",
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
 }
