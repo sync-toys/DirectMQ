@@ -2,10 +2,11 @@
 
 #include "../../protocol/decoder.hpp"
 #include "../participant.hpp"
-#include "network_edge_state_manager.hpp"
 #include "state_name.hpp"
 
 namespace directmq::network::edge {
+class NetworkEdgeStateManager;
+
 class NetworkEdgeState : public NetworkParticipant,
                          public protocol::DecodingHandler {
    protected:

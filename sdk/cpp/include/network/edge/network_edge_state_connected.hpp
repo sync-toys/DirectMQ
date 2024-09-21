@@ -7,7 +7,7 @@
 #include "../../protocol/messages/unsubscribe.hpp"
 #include "../constants.hpp"
 #include "../participant.hpp"
-#include "network_edge_state.hpp"
+#include "network_edge_state_manager.hpp"
 #include "state_name.hpp"
 #include "utilities.hpp"
 
