@@ -4,6 +4,7 @@
 #include <memory>
 #include <random>
 #include <string>
+#include <stdexcept>
 
 #include "topic_pattern.hpp"
 
@@ -15,7 +16,7 @@ struct Subscription {
     THandler handler;
 };
 
-template <typename THandler = void>
+template <typename THandler = void*>
 class SubscriptionList {
    private:
     std::list<Subscription<THandler>> subscriptions;
