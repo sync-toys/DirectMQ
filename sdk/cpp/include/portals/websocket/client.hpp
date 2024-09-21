@@ -6,6 +6,7 @@
 
 #include "../../network/node.hpp"
 #include "portal.hpp"
+#include "runnable.hpp"
 
 namespace directmq::portal::websocket {
 class WebsocketClient;
@@ -16,7 +17,7 @@ class WebsocketClientCreationResult {
     const char* error;
 };
 
-class WebsocketClient {
+class WebsocketClient: public Runnable {
    private:
     lws_context_creation_info info;
     lws_protocols protocols[2] = {
@@ -127,10 +128,12 @@ class WebsocketClient {
             return WebsocketClientCreationResult{nullptr,
                                                  "lws client connect failed"};
         }
+
+        return WebsocketClientCreationResult{std::make_shared<WebsocketClient>(client), nullptr};
     }
 
     ~WebsocketClient() { lws_context_destroy(context); }
 
-    void run(int timeoutMs = 0) { lws_service(context, timeoutMs); }
+    void run(int timeoutMs = 0) override { lws_service(context, timeoutMs); }
 };
 }  // namespace directmq::portal::websocket

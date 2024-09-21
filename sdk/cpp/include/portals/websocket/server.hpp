@@ -10,6 +10,7 @@
 #include "../../network/node.hpp"
 #include "../../portal.hpp"
 #include "portal.hpp"
+#include "runnable.hpp"
 
 namespace directmq::portal::websocket {
 class WebsocketServer;
@@ -19,7 +20,7 @@ struct WebsocketServerCreationResult {
     const char* error;
 };
 
-class WebsocketServer {
+class WebsocketServer: public Runnable {
    private:
     lws_context_creation_info info;
     lws_protocols protocols[2] = {
@@ -112,6 +113,6 @@ class WebsocketServer {
 
     ~WebsocketServer() { lws_context_destroy(context); }
 
-    void run(int timeoutMs = 0) { lws_service(context, timeoutMs); }
+    void run(int timeoutMs = 0) override { lws_service(context, timeoutMs); }
 };
 }  // namespace directmq::portal::websocket
