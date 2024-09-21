@@ -9,7 +9,6 @@
 #include "../participant.hpp"
 #include "edge_info.hpp"
 #include "network_edge_state.hpp"
-#include "network_edge_state_manager.hpp"
 #include "state_name.hpp"
 #include "utilities.hpp"
 
@@ -30,15 +29,15 @@ class NetworkEdgeStateManager : public NetworkParticipant,
 
     EdgeInfo edgeInfo;
 
-    subscriptions::SubscriptionList<void> bridgedNodeSubscriptions;
+    subscriptions::SubscriptionList<void*> bridgedNodeSubscriptions;
 
     void setState(NetworkEdgeState* newState) {
-        if (state != nullptr) {
-            delete state;
-        }
+        auto oldState = state;
 
         state = newState;
         state->onSet();
+
+        delete oldState;
     }
 
     friend class NetworkEdgeStateDisconnected;
@@ -65,12 +64,10 @@ class NetworkEdgeStateManager : public NetworkParticipant,
           portal(portal),
           decoder(decoder),
           encoder(encoder),
-          state(nullptr),
           edgeInfo{.bridgedNodeID = "",
                    .bridgedNodeMaxMessageSize = NO_MAX_MESSAGE_SIZE,
                    .bridgedNodeSupportedProtocolVersions = {},
                    .negotiatedProtocolVersion = 0} {
-        setDisconnectedState("initial state");
     }
 
     protocol::DecodingResult processIncomingPacket(
