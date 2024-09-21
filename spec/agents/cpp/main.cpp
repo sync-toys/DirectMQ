@@ -1,13 +1,17 @@
 #include <chrono>
-#include <directmq.hpp>
 #include <iomanip>
 #include <iostream>
-#include <portals/websocket/client.hpp>
-#include <portals/websocket/server.hpp>
 #include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
+
+#include <directmq.hpp>
+#include <portals/websocket/client.hpp>
+#include <portals/websocket/server.hpp>
+
+#include "commands.hpp"
+#include "notifications.hpp"
 
 std::string getCurrentTimeString() {
     auto now = std::chrono::system_clock::now();
@@ -19,9 +23,6 @@ std::string getCurrentTimeString() {
 
     return oss.str();
 }
-
-#include "commands.hpp"
-#include "notifications.hpp"
 
 directmq::DirectMQNode *node;
 std::shared_ptr<directmq::portal::websocket::Runnable> runnablePortalHost;
