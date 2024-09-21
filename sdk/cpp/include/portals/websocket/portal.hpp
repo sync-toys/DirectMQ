@@ -3,16 +3,19 @@
 #include <libwebsockets.h>
 
 #include <vector>
+#include <memory>
 
 #include "../../network/edge/network_edge.hpp"
 #include "../../network/node.hpp"
-#include "../../portal.hpp"
+#include "portal.hpp"
 
 namespace directmq::portal::websocket {
 enum class WsDataFormat : int { BINARY = 1, TEXT = 0 };
 
+class WebsocketPortal;
+
 struct DmqProtocolConnectionContext {
-    network::NetworkNode* node;
+    network::EdgeManager* edgeManager;
     std::shared_ptr<WebsocketPortal> portal;
     std::shared_ptr<network::edge::NetworkEdge> edge;
     WsDataFormat dataFormat;
