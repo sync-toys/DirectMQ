@@ -14,13 +14,14 @@ target_include_directories(directmq-sdk PUBLIC
 
 target_link_libraries(directmq-sdk PRIVATE
     protobuf-nanopb-static
-    dmq_proto_embedded)
+    dmq_proto_embedded
+    websockets)
 
 option(TESTING "Enable tests." ON)
 
 if(TESTING)
-  enable_testing()
-  add_subdirectory(test)
+    enable_testing()
+    add_subdirectory(test)
 endif()
 
 install(TARGETS directmq-sdk DESTINATION bin)
