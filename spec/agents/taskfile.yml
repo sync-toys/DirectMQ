@@ -1,0 +1,30 @@
+version: 3
+
+includes:
+    cpp:
+        taskfile: ./cpp
+        dir: ./cpp
+    go:
+        taskfile: ./go
+        dir: ./go
+
+tasks:
+    default:
+        desc: Show all available tasks
+        silent: true
+        cmds:
+            - task --list-all
+
+    clean:
+        desc: Clean the DirectMQ SDK testing agents build directories
+        silent: true
+        cmds:
+            - task: cpp:clean
+            - task: go:clean
+
+    build:
+        desc: Build the DirectMQ SDK testing agents
+        silent: true
+        cmds:
+            - task: cpp:build
+            - task: go:build

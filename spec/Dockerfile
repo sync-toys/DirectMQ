@@ -2,6 +2,8 @@ FROM golang:1.22.2
 
 # IMPORTANT:
 # The CWD for this Dockerfile is the root of the repository, not ./spec directory
+# so all paths are relative to the root of the repository,
+# also it means that docker build context should be the root of the repository
 
 WORKDIR /directmq
 
@@ -9,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
     g++ \
-    gdb \
+    gdbserver \
     catch2 \
     protobuf-compiler \
     libwebsockets-dev

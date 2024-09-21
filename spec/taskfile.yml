@@ -1,0 +1,56 @@
+version: 3
+
+includes:
+    agents:
+        taskfile: ./agents/taskfile.yml
+        dir: ./agents
+
+tasks:
+    default:
+        desc: Show all available tasks
+        silent: true
+        cmds:
+            - task --list-all
+
+    build-image:
+        desc: Build the spec runner Docker image
+        silent: true
+        dir: ..
+        cmds:
+            - echo Building the spec runner Docker image...
+            - docker build -t directmq/spec-runner -f ./spec/Dockerfile .
+
+    run:
+        desc: Run specification tests
+        internal: true
+        silent: true
+        dir: ..
+        cmds:
+            - echo Removing any existing DirectMQ.Spec container instance...
+            - docker rm -f DirectMQ.Spec || true
+
+            - defer: docker rm -f DirectMQ.Spec || true
+            - defer: echo Cleaning up...
+
+            - echo Forwarding ports {{range .FORWARD_PORTS}} {{ . }}:{{ . }} {{end}}
+
+            - echo Running specification tests...
+            - |
+                docker run \
+                --volume "$(pwd):/directmq" \
+                -t --name DirectMQ.Spec \
+                --network=bridge \
+                {{range .FORWARD_PORTS}} -p {{ . }}:{{ . }} {{end}} \
+                directmq/spec-runner \
+                {{.COMMAND}}
+
+            - echo Specification tests done
+
+    test:
+        desc: Run specification tests in docker container
+        silent: true
+        cmds:
+            - task: run
+              vars:
+                  COMMAND: /bin/sh run-tests.sh
+                  FORWARD_PORTS: [2345, 3456]

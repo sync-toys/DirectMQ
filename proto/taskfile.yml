@@ -1,0 +1,32 @@
+version: 3
+
+tasks:
+    default:
+        desc: Show all available tasks
+        silent: true
+        cmds:
+            - task --list-all
+
+    build-image:
+        desc: Build the proto builder Docker image
+        silent: true
+        cmds:
+            - echo Building the protocols tools Docker image...
+            - docker build -t directmq/protogen .
+
+    generate:
+        desc: Generate output from Protocol Buffer files
+        silent: true
+        cmds:
+            - echo Generating output from Protocol Buffer files...
+
+            - docker rm -f DirectMQ.Protogen || true
+            - |
+                cd .. && \
+                docker run \
+                --volume "$(pwd)/proto:/protocols" \
+                --volume "$(pwd)/sdk:/sdk" \
+                --name DirectMQ.Protogen \
+                directmq/protogen
+
+            - echo Protocol Buffer files generated successfully

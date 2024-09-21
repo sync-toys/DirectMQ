@@ -1,80 +1,19 @@
 version: 3
 
+includes:
+    proto:
+        taskfile: ./proto/taskfile.yml
+        dir: ./proto
+    sdk:
+        taskfile: ./sdk/taskfile.yml
+        dir: ./sdk
+    spec:
+        taskfile: ./spec/taskfile.yml
+        dir: ./spec
+
 tasks:
     default:
         desc: Show all available tasks
         silent: true
         cmds:
             - task --list-all
-
-    proto:build-image:
-        desc: Build the proto builder Docker image
-        silent: true
-        cmds:
-            - echo Building the protocols tools Docker image...
-            - docker build -t directmq/protogen ./proto
-
-    proto:generate:
-        desc: Generate output from Protocol Buffer files
-        silent: true
-        cmds:
-            - echo Generating output from Protocol Buffer files...
-
-            - docker rm -f DirectMQ.Protogen || true
-            - |
-                docker run \
-                --volume "$(pwd)/proto:/protocols" \
-                --volume "$(pwd)/sdk:/sdk" \
-                --name DirectMQ.Protogen \
-                directmq/protogen
-
-            - echo Protocol Buffer files generated successfully
-
-    sdk:go:test:
-        desc: Run Go SDK tests
-        silent: true
-        cmds:
-            - echo Running Go SDK tests...
-            - cd ./sdk/go && go test -v ./...
-            - echo Tests done
-
-    spec:build-image:
-        desc: Build the spec runner Docker image
-        silent: true
-        cmds:
-            - echo Building the spec runner Docker image...
-            - docker build -t directmq/spec-runner -f ./spec/Dockerfile .
-
-    spec:run:
-        desc: Run specification tests
-        internal: true
-        silent: true
-        cmds:
-            - echo Removing any existing DirectMQ.Spec container instance...
-            - docker rm -f DirectMQ.Spec || true
-
-            - defer: docker rm -f DirectMQ.Spec || true
-            - defer: echo Cleaning up...
-
-            - echo Forwarding ports {{range .FORWARD_PORTS}} -p {{ . }}:{{ . }} {{end}}
-
-            - echo Running specification tests...
-            - |
-                docker run \
-                --volume "$(pwd):/directmq" \
-                -t --name DirectMQ.Spec \
-                --network=bridge \
-                {{range .FORWARD_PORTS}} -p {{ . }}:{{ . }} {{end}} \
-                directmq/spec-runner \
-                {{.COMMAND}}
-
-            - echo Specification tests done
-
-    spec:test:
-        desc: Run specification tests in docker container
-        silent: true
-        cmds:
-            - task: spec:run
-              vars:
-                  COMMAND: /bin/sh run-tests.sh
-                  FORWARD_PORTS: [2345]

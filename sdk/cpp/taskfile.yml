@@ -11,7 +11,7 @@ tasks:
         desc: Clean the DirectMQ C++ SDK build directory
         silent: true
         cmds:
-            - echo "Cleaning build directory"
+            - echo "Cleaning C++ SDK build directory"
             - rm -rf build/debug build/release
 
     clean:all:
@@ -33,26 +33,30 @@ tasks:
         desc: Build the DirectMQ C++ SDK in debug mode
         silent: true
         cmds:
+            - echo "Building DirectMQ C++ SDK in debug mode"
+
             - task: generate
               vars:
                   BUILD_DIRECTORY: build/debug
                   CMAKE_BUILD_TYPE: Debug
                   DMQ_BUILD_TESTS: ON
 
-            - echo "Building DirectMQ C++ SDK in debug mode"
+            - echo "Building sdk"
             - cmake --build build/debug
 
     release:
         desc: Build the DirectMQ C++ SDK in release mode
         silent: true
         cmds:
+            - echo "Building DirectMQ C++ SDK in release mode"
+
             - task: generate
               vars:
                   BUILD_DIRECTORY: build/release
                   CMAKE_BUILD_TYPE: Release
                   DMQ_BUILD_TESTS: OFF
 
-            - echo "Building DirectMQ C++ SDK in release mode"
+            - echo "Building sdk"
             - cmake --build build/release
 
     format:

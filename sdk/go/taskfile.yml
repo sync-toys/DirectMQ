@@ -1,0 +1,22 @@
+version: 3
+
+tasks:
+    default:
+        desc: Show all available tasks
+        silent: true
+        cmds:
+            - task --list-all
+
+    clean:
+        desc: Clean the DirectMQ Go SDK build directory
+        silent: true
+        cmds:
+            - echo "Cleaning Go SDK build directory"
+            - rm -rf bin
+
+    test:
+        desc: Run DirectMQ Go SDK tests
+        silent: true
+        cmds:
+            - echo "Running Go SDK tests"
+            - go test -v ./...

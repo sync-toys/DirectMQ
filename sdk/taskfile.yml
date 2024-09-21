@@ -1,0 +1,39 @@
+version: 3
+
+includes:
+    cpp:
+        taskfile: ./cpp/taskfile.yml
+        dir: ./cpp
+    go:
+        taskfile: ./go/taskfile.yml
+        dir: ./go
+
+tasks:
+    default:
+        desc: Show all available tasks
+        silent: true
+        cmds:
+            - task --list-all
+
+    clean:
+        desc: Clean the DirectMQ SDKs build directories
+        silent: true
+        cmds:
+            - task: cpp:clean
+            - task: go:clean
+
+    build:
+        desc: Build the DirectMQ SDKs
+        silent: true
+        cmds:
+            - task: cpp:build
+            - echo "Skipping Go SDK, nothing to build"
+            # golang does not have buildable SDK
+            # it can be only imported <3
+
+    test:
+        desc: Run DirectMQ SDK tests
+        silent: true
+        cmds:
+            - task: cpp:test
+            - task: go:test
