@@ -53,7 +53,7 @@ class WebsocketClient {
 
                 ctx->portal =
                     std::make_shared<WebsocketPortal>(wsi, ctx->dataFormat);
-                ctx->edge = ctx->node->addConnectingEdge(ctx->portal);
+                ctx->edge = ctx->edgeManager->addConnectingEdge(ctx->portal);
 
                 break;
             }
@@ -70,7 +70,7 @@ class WebsocketClient {
             case LWS_CALLBACK_CLIENT_CLOSED: {
                 printf("Connection closed\n");
 
-                ctx->node->removeEdge(ctx->portal, "websocket client closed");
+                ctx->edgeManager->removeEdge(ctx->portal, "websocket client closed");
                 delete (DmqProtocolConnectionContext*)user;
 
                 break;
@@ -89,7 +89,7 @@ class WebsocketClient {
                                                  const int port,
                                                  const char* path,
                                                  WsDataFormat dataFormat,
-                                                 network::NetworkNode* node) {
+                                                 network::EdgeManager* edgeManager) {
         WebsocketClient client;
 
         // init lws context creation info
@@ -100,7 +100,7 @@ class WebsocketClient {
         client.info.user = &client.initialDmqProtoCtx;
 
         // configure initial dmq proto context
-        client.initialDmqProtoCtx.node = node;
+        client.initialDmqProtoCtx.edgeManager = edgeManager;
         client.initialDmqProtoCtx.edge = nullptr;
         client.initialDmqProtoCtx.portal = nullptr;
         client.initialDmqProtoCtx.dataFormat = dataFormat;
