@@ -17,9 +17,9 @@ target_link_libraries(directmq-sdk PRIVATE
     dmq_proto_embedded
     websockets)
 
-option(TESTING "Enable tests." ON)
+option(DMQ_BUILD_TESTS "Enable DirectMQ C++ SDK testing" OFF)
 
-if(TESTING)
+if(DMQ_BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
 endif()

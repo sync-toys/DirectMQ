@@ -1,9 +1,23 @@
 cmake_minimum_required(VERSION 3.26)
 
-find_package(libwebsockets REQUIRED)
+include(FetchContent)
 
-set(NANOPB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/nanopb")
-include_directories(${NANOPB_INCLUDE_DIR})
+# Fetch libwebsockets
+FetchContent_Declare(
+  libwebsockets
+  GIT_REPOSITORY https://github.com/warmcat/libwebsockets.git
+  GIT_TAG v4.3.3
+)
 
-add_subdirectory(nanopb)
+set(LWS_WITHOUT_TESTAPPS ON CACHE BOOL "Disable libwebsockets test apps")
+FetchContent_MakeAvailable(libwebsockets)
+
+# Fetch nanopb
+FetchContent_Declare(
+  nanopb
+  GIT_REPOSITORY https://github.com/nanopb/nanopb.git
+  GIT_TAG 0.4.9
+)
+FetchContent_MakeAvailable(nanopb)
+
 add_subdirectory(dmq_proto_embedded)

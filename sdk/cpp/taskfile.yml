@@ -7,36 +7,53 @@ tasks:
         cmds:
             - task --list-all
 
-    install:
-        desc: Initialize the DirectMQ C++ SDK dependencies
-        silent: true
-        cmds:
-            - echo Installing dependencies
-
-            - echo Installing nanopb
-            - rm -rf lib/nanopb
-            - git clone https://github.com/nanopb/nanopb.git lib/nanopb
-
-            - echo installing catch2
-            - rm -rf lib/catch2
-            - git clone --branch v2.x https://github.com/catchorg/Catch2.git lib/catch2
-            - cd lib/catch2 && cmake -Bbuild -H. -DBUILD_TESTING=OFF
-            - cd lib/catch2 && cmake --build build/ --target install
-
     clean:
         desc: Clean the DirectMQ C++ SDK build directory
         silent: true
         cmds:
             - echo "Cleaning build directory"
-            - rm -rf build
+            - rm -rf build/debug build/release
 
-    build:
-        desc: Build the DirectMQ C++ SDK
+    clean:all:
+        desc: Clean the DirectMQ C++ SDK build and dependencies directories
         silent: true
         cmds:
-            - echo "Building DirectMQ C++ SDK"
-            - cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
-            - cmake --build build
+            - echo "Cleaning build and dependencies directories"
+            - rm -rf build
+
+    generate:
+        desc: Generate cmake build configuration
+        internal: true
+        silent: true
+        cmds:
+            - echo "Generating cmake configuration for {{.BUILD_DIRECTORY}}"
+            - cmake -B {{.BUILD_DIRECTORY}} -S . -DCMAKE_BUILD_TYPE={{.CMAKE_BUILD_TYPE}} -DDMQ_BUILD_TESTS={{.DMQ_BUILD_TESTS}} -DFETCHCONTENT_BASE_DIR=./build/_deps
+
+    build:
+        desc: Build the DirectMQ C++ SDK in debug mode
+        silent: true
+        cmds:
+            - task: generate
+              vars:
+                  BUILD_DIRECTORY: build/debug
+                  CMAKE_BUILD_TYPE: Debug
+                  DMQ_BUILD_TESTS: ON
+
+            - echo "Building DirectMQ C++ SDK in debug mode"
+            - cmake --build build/debug
+
+    release:
+        desc: Build the DirectMQ C++ SDK in release mode
+        silent: true
+        cmds:
+            - task: generate
+              vars:
+                  BUILD_DIRECTORY: build/release
+                  CMAKE_BUILD_TYPE: Release
+                  DMQ_BUILD_TESTS: OFF
+
+            - echo "Building DirectMQ C++ SDK in release mode"
+            - cmake --build build/release
 
     format:
         desc: Format the DirectMQ C++ SDK source code
@@ -50,7 +67,7 @@ tasks:
         silent: true
         cmds:
             - echo "Analyzing source code"
-            - cmake -B build -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            - cmake -B build/debug -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
             - find include src test -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | xargs clang-tidy -p build
 
     test:
@@ -58,16 +75,7 @@ tasks:
         silent: true
         cmds:
             - echo "Running C++ SDK tests"
-            - cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
-            - ctest --test-dir build --output-on-failure
-
-    run:
-        desc: Run the DirectMQ C++ SDK example
-        silent: true
-        cmds:
-            - cmake -B build -S .
-            - cmake --build build
-            - ./build/directmq-sdk
+            - ctest --test-dir build/debug --output-on-failure
 
     dev:
         desc: Compile and run the DirectMQ C++ SDK tests
