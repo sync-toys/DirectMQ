@@ -23,22 +23,30 @@ class EdgeManager {
                             const std::string& reason) = 0;
 };
 
+class NodeManager {
+   public:
+    virtual ~NodeManager() = default;
+
+    virtual void closeNode(const std::string& reason,
+                std::function<void()> onNodeFullyClosed) = 0;
+};
+
+
 using ConnectionLostHandler = void(const std::string& bridgedNodeID,
                                    const std::string& reason,
                                    portal::Portal& portal);
 
-class NetworkNode : public EdgeManager, public api::DiagnosticsAPI {
+class NetworkNode : public EdgeManager, public NodeManager {
    private:
     std::shared_ptr<network::GlobalNetwork> globalNetwork;
-    std::list<std::shared_ptr<edge::NetworkEdge>> edges;
+    std::list<std::shared_ptr<edge::NetworkEdge>> edges = {};
 
     std::shared_ptr<api::NativeAPIAdapter> nativeAPI;
-    std::shared_ptr<api::DiagnosticsAPI> diagnosticsAPI;
+    std::shared_ptr<api::DiagnosticsAPIAdapter> diagnosticsAPI;
 
     std::shared_ptr<protocol::Encoder> encoder;
     std::shared_ptr<protocol::Decoder> decoder;
 
-    std::function<ConnectionLostHandler> onConnectionLostCallback;
     std::function<void()> onNodeFullyClosedCallback;
 
     void handleEdgeConnectionLost(const std::string& bridgedNodeID,
@@ -130,7 +138,7 @@ class NetworkNode : public EdgeManager, public api::DiagnosticsAPI {
     }
 
     void closeNode(const std::string& reason,
-                   std::function<void()> onNodeFullyClosed) {
+                   std::function<void()> onNodeFullyClosed) override {
         onNodeFullyClosedCallback = onNodeFullyClosed;
 
         for (auto& edge : edges) {
