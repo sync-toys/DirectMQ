@@ -19,7 +19,7 @@ tasks:
         silent: true
         cmds:
             - echo "Building DirectMQ C++ SDK"
-            - cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
+            - cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
             - cmake --build build
 
     format:
