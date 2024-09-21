@@ -2,8 +2,8 @@
 
 #include <libwebsockets.h>
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "../../network/edge/network_edge.hpp"
 #include "../../network/node.hpp"

@@ -67,8 +67,7 @@ class NetworkEdgeStateManager : public NetworkParticipant,
           edgeInfo{.bridgedNodeID = "",
                    .bridgedNodeMaxMessageSize = NO_MAX_MESSAGE_SIZE,
                    .bridgedNodeSupportedProtocolVersions = {},
-                   .negotiatedProtocolVersion = 0} {
-    }
+                   .negotiatedProtocolVersion = 0} {}
 
     protocol::DecodingResult processIncomingPacket(
         std::shared_ptr<portal::Packet> packet) {

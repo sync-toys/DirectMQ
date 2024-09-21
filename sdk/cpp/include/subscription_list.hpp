@@ -3,8 +3,8 @@
 #include <list>
 #include <memory>
 #include <random>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 #include "topic_pattern.hpp"
 

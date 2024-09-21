@@ -20,7 +20,7 @@ struct WebsocketServerCreationResult {
     const char* error;
 };
 
-class WebsocketServer: public Runnable {
+class WebsocketServer : public Runnable {
    private:
     lws_context_creation_info info;
     lws_protocols protocols[2] = {
@@ -69,7 +69,7 @@ class WebsocketServer: public Runnable {
                 printf("Connection closed\n");
 
                 ctx->edgeManager->removeEdge(ctx->portal,
-                                      "websocket connection closed");
+                                             "websocket connection closed");
                 delete (DmqProtocolConnectionContext*)user;
 
                 break;
@@ -83,10 +83,9 @@ class WebsocketServer: public Runnable {
     }
 
    public:
-    static WebsocketServerCreationResult create(const char* address,
-                                                const int port,
-                                                WsDataFormat dataFormat,
-                                                network::EdgeManager* edgeManager) {
+    static WebsocketServerCreationResult create(
+        const char* address, const int port, WsDataFormat dataFormat,
+        network::EdgeManager* edgeManager) {
         WebsocketServer server;
 
         // init lws context creation info

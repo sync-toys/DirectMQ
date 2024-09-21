@@ -7,14 +7,12 @@
 #include "../portal.hpp"
 #include "../protocol/messages.hpp"
 
-
 // break the circular dependency
 namespace directmq::network::edge {
 class NetworkEdge;
 }  // namespace directmq::network::edge
 
 namespace directmq::api {
-
 
 using ConnectionEstablishedHandler = void(const std::string& bridgedNodeID,
                                           portal::Portal& portal);
@@ -28,52 +26,49 @@ using EdgeDisconnectedHandler = void(const std::string& bridgedNodeID,
                                      network::edge::NetworkEdge& edge,
                                      portal::Portal& portal);
 
-using PublicationHandler = void(const protocol::messages::PublishMessage& publication);
+using PublicationHandler =
+    void(const protocol::messages::PublishMessage& publication);
 
-using SubscriptionHandler = void(const protocol::messages::SubscribeMessage& subscription);
+using SubscriptionHandler =
+    void(const protocol::messages::SubscribeMessage& subscription);
 
-using UnsubscribeHandler = void(const protocol::messages::UnsubscribeMessage& unsubscription);
+using UnsubscribeHandler =
+    void(const protocol::messages::UnsubscribeMessage& unsubscription);
 
-using TerminateNetworkHandler = void(const protocol::messages::TerminateNetworkMessage& termination);
-
+using TerminateNetworkHandler =
+    void(const protocol::messages::TerminateNetworkMessage& termination);
 
 class DiagnosticsAPI {
    public:
     virtual ~DiagnosticsAPI() = default;
 
     virtual void setOnConnectionEstablishedHandler(
-        std::function<ConnectionEstablishedHandler>
-            handler) = 0;
+        std::function<ConnectionEstablishedHandler> handler) = 0;
 
     virtual void setOnEdgeDisconnectionHandler(
-        std::function<EdgeDisconnectedHandler>
-            handler) = 0;
+        std::function<EdgeDisconnectedHandler> handler) = 0;
 
     virtual void setOnPublicationHandler(
-        std::function<PublicationHandler>
-            handler) = 0;
+        std::function<PublicationHandler> handler) = 0;
 
     virtual void setOnSubscriptionHandler(
-        std::function<SubscriptionHandler>
-            handler) = 0;
+        std::function<SubscriptionHandler> handler) = 0;
 
     virtual void setOnUnsubscribeHandler(
-        std::function<UnsubscribeHandler>
-            handler) = 0;
+        std::function<UnsubscribeHandler> handler) = 0;
 
     virtual void setOnTerminateNetworkHandler(
-        std::function<TerminateNetworkHandler>
-            handler) = 0;
+        std::function<TerminateNetworkHandler> handler) = 0;
 };
 
-class DiagnosticsAPIAdapter : public DiagnosticsAPI, public network::NetworkParticipant {
+class DiagnosticsAPIAdapter : public DiagnosticsAPI,
+                              public network::NetworkParticipant {
    public:
     virtual ~DiagnosticsAPIAdapter() = default;
 
     // required for NetworkNode setup
     virtual void setOnConnectionLostHandler(
-        std::function<ConnectionLostHandler>
-            handler) = 0;
+        std::function<ConnectionLostHandler> handler) = 0;
 
     virtual void onConnectionEstablished(const std::string& bridgedNodeID,
                                          directmq::portal::Portal& portal) = 0;
@@ -90,26 +85,19 @@ class DiagnosticsAPIAdapter : public DiagnosticsAPI, public network::NetworkPart
 
 class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
    private:
-    std::function<ConnectionEstablishedHandler>
-        onConnectionEstablishedHandler;
+    std::function<ConnectionEstablishedHandler> onConnectionEstablishedHandler;
 
-    std::function<ConnectionLostHandler>
-        onConnectionLostHandler;
+    std::function<ConnectionLostHandler> onConnectionLostHandler;
 
-    std::function<EdgeDisconnectedHandler>
-        onEdgeDisconnectionHandler;
+    std::function<EdgeDisconnectedHandler> onEdgeDisconnectionHandler;
 
-    std::function<PublicationHandler>
-        onPublicationHandler;
+    std::function<PublicationHandler> onPublicationHandler;
 
-    std::function<SubscriptionHandler>
-        onSubscriptionHandler;
+    std::function<SubscriptionHandler> onSubscriptionHandler;
 
-    std::function<UnsubscribeHandler>
-        onUnsubscribeHandler;
+    std::function<UnsubscribeHandler> onUnsubscribeHandler;
 
-    std::function<TerminateNetworkHandler>
-        onTerminateNetworkHandler;
+    std::function<TerminateNetworkHandler> onTerminateNetworkHandler;
 
    public:
     std::list<std::shared_ptr<const std::string>> getSubscribedTopics()
@@ -131,8 +119,7 @@ class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
     }
 
     void setOnConnectionEstablishedHandler(
-        std::function<ConnectionEstablishedHandler>
-            handler) override {
+        std::function<ConnectionEstablishedHandler> handler) override {
         onConnectionEstablishedHandler = handler;
     }
 
@@ -144,8 +131,7 @@ class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
     }
 
     void setOnConnectionLostHandler(
-        std::function<ConnectionLostHandler>
-            handler) override {
+        std::function<ConnectionLostHandler> handler) override {
         onConnectionLostHandler = handler;
     }
 
@@ -158,8 +144,7 @@ class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
     }
 
     void setOnEdgeDisconnectionHandler(
-        std::function<EdgeDisconnectedHandler>
-            handler) override {
+        std::function<EdgeDisconnectedHandler> handler) override {
         onEdgeDisconnectionHandler = handler;
     }
 
@@ -173,8 +158,7 @@ class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
     }
 
     void setOnPublicationHandler(
-        std::function<PublicationHandler>
-            handler) override {
+        std::function<PublicationHandler> handler) override {
         onPublicationHandler = handler;
     }
 
@@ -190,8 +174,7 @@ class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
     }
 
     void setOnSubscriptionHandler(
-        std::function<SubscriptionHandler>
-            handler) override {
+        std::function<SubscriptionHandler> handler) override {
         onSubscriptionHandler = handler;
     }
 
@@ -203,8 +186,7 @@ class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
     }
 
     void setOnUnsubscribeHandler(
-        std::function<UnsubscribeHandler>
-            handler) override {
+        std::function<UnsubscribeHandler> handler) override {
         onUnsubscribeHandler = handler;
     }
 
@@ -216,8 +198,7 @@ class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
     }
 
     void setOnTerminateNetworkHandler(
-        std::function<TerminateNetworkHandler>
-            handler) override {
+        std::function<TerminateNetworkHandler> handler) override {
         onTerminateNetworkHandler = handler;
     }
 

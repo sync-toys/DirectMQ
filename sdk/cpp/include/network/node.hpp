@@ -28,9 +28,8 @@ class NodeManager {
     virtual ~NodeManager() = default;
 
     virtual void closeNode(const std::string& reason,
-                std::function<void()> onNodeFullyClosed) = 0;
+                           std::function<void()> onNodeFullyClosed) = 0;
 };
-
 
 using ConnectionLostHandler = void(const std::string& bridgedNodeID,
                                    const std::string& reason,
@@ -62,7 +61,8 @@ class NetworkNode : public EdgeManager, public NodeManager {
             edges.erase(edge);
         }
 
-        diagnosticsAPI->onEdgeDisconnection(bridgedNodeID, reason, *edge->get(), portal);
+        diagnosticsAPI->onEdgeDisconnection(bridgedNodeID, reason, *edge->get(),
+                                            portal);
 
         if (edges.size() == 0 && onNodeFullyClosedCallback) {
             onNodeFullyClosedCallback();

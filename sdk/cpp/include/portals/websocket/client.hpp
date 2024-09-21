@@ -17,7 +17,7 @@ class WebsocketClientCreationResult {
     const char* error;
 };
 
-class WebsocketClient: public Runnable {
+class WebsocketClient : public Runnable {
    private:
     lws_context_creation_info info;
     lws_protocols protocols[2] = {
@@ -71,7 +71,8 @@ class WebsocketClient: public Runnable {
             case LWS_CALLBACK_CLIENT_CLOSED: {
                 printf("Connection closed\n");
 
-                ctx->edgeManager->removeEdge(ctx->portal, "websocket client closed");
+                ctx->edgeManager->removeEdge(ctx->portal,
+                                             "websocket client closed");
                 delete (DmqProtocolConnectionContext*)user;
 
                 break;
@@ -86,11 +87,9 @@ class WebsocketClient: public Runnable {
     WebsocketClient() {}
 
    public:
-    static WebsocketClientCreationResult connect(const char* address,
-                                                 const int port,
-                                                 const char* path,
-                                                 WsDataFormat dataFormat,
-                                                 network::EdgeManager* edgeManager) {
+    static WebsocketClientCreationResult connect(
+        const char* address, const int port, const char* path,
+        WsDataFormat dataFormat, network::EdgeManager* edgeManager) {
         WebsocketClient client;
 
         // init lws context creation info
@@ -129,7 +128,8 @@ class WebsocketClient: public Runnable {
                                                  "lws client connect failed"};
         }
 
-        return WebsocketClientCreationResult{std::make_shared<WebsocketClient>(client), nullptr};
+        return WebsocketClientCreationResult{
+            std::make_shared<WebsocketClient>(client), nullptr};
     }
 
     ~WebsocketClient() { lws_context_destroy(context); }

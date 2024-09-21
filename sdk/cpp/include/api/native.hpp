@@ -46,7 +46,7 @@ class NativeAPIAdapter : public NativePublicationAPI,
 };
 
 using LambdaMessageHandler = void(const std::string& topic,
-                           const std::vector<uint8_t>& message);
+                                  const std::vector<uint8_t>& message);
 
 class NativeLambdaAPI : public NativePublicationAPI {
    public:
@@ -58,7 +58,8 @@ class NativeLambdaAPI : public NativePublicationAPI {
 
 class NativeLambdaAPIAdapter : public NativeLambdaAPI, public NativeAPIAdapter {
    protected:
-    subscriptions::SubscriptionList<std::function<LambdaMessageHandler>> subscriptions;
+    subscriptions::SubscriptionList<std::function<LambdaMessageHandler>>
+        subscriptions;
 
     protocol::messages::DataFrame getInitialDataFrame() const {
         return protocol::messages::DataFrame{
@@ -169,8 +170,7 @@ class NativeLambdaAPIAdapter : public NativeLambdaAPI, public NativeAPIAdapter {
 
         if (publication.deliveryStrategy ==
             protocol::messages::DeliveryStrategy::AT_MOST_ONCE) {
-            subscribers.front().handler(publication.topic,
-                                        publication.payload);
+            subscribers.front().handler(publication.topic, publication.payload);
             return true;
         }
 
