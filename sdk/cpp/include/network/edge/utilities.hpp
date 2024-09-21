@@ -8,16 +8,16 @@
 
 namespace directmq::network::edge::internal {
 bool checkForNetworkLoops(const protocol::messages::DataFrame& frame) {
-    std::list<const std::string&> existingHosts;
+    std::list<const std::string*> existingHosts;
 
     for (auto& host : frame.traversed) {
-        for (auto& existingHost : existingHosts) {
-            if (&host == &existingHost) {
+        for (auto existingHost : existingHosts) {
+            if (&host == existingHost) {
                 return true;
             }
         }
 
-        existingHosts.push_back(host);
+        existingHosts.push_back(&host);
     }
 
     return false;
