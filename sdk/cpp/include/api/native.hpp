@@ -45,12 +45,20 @@ class NativeAPIAdapter : public NativePublicationAPI,
     friend class network::NetworkNode;
 };
 
-using LambdaHandler = void(const std::string* topic,
-                           const std::vector<uint8_t>* message);
+using LambdaMessageHandler = void(const std::string& topic,
+                           const std::vector<uint8_t>& message);
 
-class NativeLambdaAPI : public NativeAPIAdapter {
+class NativeLambdaAPI : public NativePublicationAPI {
+   public:
+    virtual int subscribe(const std::string& topic,
+                          std::function<LambdaMessageHandler> handler) = 0;
+
+    virtual void unsubscribe(int subscriptionId) = 0;
+};
+
+class NativeLambdaAPIAdapter : public NativeLambdaAPI, public NativeAPIAdapter {
    protected:
-    subscriptions::SubscriptionList<std::function<LambdaHandler>> subscriptions;
+    subscriptions::SubscriptionList<std::function<LambdaMessageHandler>> subscriptions;
 
     protocol::messages::DataFrame getInitialDataFrame() const {
         return protocol::messages::DataFrame{
@@ -107,7 +115,7 @@ class NativeLambdaAPI : public NativeAPIAdapter {
     }
 
     int subscribe(const std::string& topic,
-                  std::function<LambdaHandler> handler) {
+                  std::function<LambdaMessageHandler> handler) {
         if (topics::isCorrectTopicPattern(topic)) {
             throw std::runtime_error("incorrect topic");
         }
@@ -161,13 +169,13 @@ class NativeLambdaAPI : public NativeAPIAdapter {
 
         if (publication.deliveryStrategy ==
             protocol::messages::DeliveryStrategy::AT_MOST_ONCE) {
-            subscribers.front().handler(&publication.topic,
-                                        &publication.payload);
+            subscribers.front().handler(publication.topic,
+                                        publication.payload);
             return true;
         }
 
         for (auto& subscriber : subscribers) {
-            subscriber.handler(&publication.topic, &publication.payload);
+            subscriber.handler(publication.topic, publication.payload);
         }
 
         return true;
