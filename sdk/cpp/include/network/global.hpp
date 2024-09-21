@@ -16,7 +16,7 @@ class GlobalNetwork {
     std::list<std::shared_ptr<NetworkParticipant>> participants;
 
     std::shared_ptr<NetworkParticipant> nativeAPI;
-    std::shared_ptr<api::DiagnosticsAPI> diagnostics;
+    std::shared_ptr<api::DiagnosticsAPIAdapter> diagnostics;
 
     std::list<std::shared_ptr<const std::string>>
     getSubscribedTopicsExcludingOriginOfMessage(
@@ -39,13 +39,13 @@ class GlobalNetwork {
 
     GlobalNetwork(const NetworkNodeConfig& config,
                   std::shared_ptr<NetworkParticipant> nativeAPI,
-                  std::shared_ptr<api::DiagnosticsAPI> diagnostics)
+                  std::shared_ptr<api::DiagnosticsAPIAdapter> diagnostics)
         : config(config),
           nativeAPI(nativeAPI),
           diagnostics(diagnostics),
           participants({nativeAPI}) {}
 
-    std::shared_ptr<api::DiagnosticsAPI> getDiagnostics() {
+    std::shared_ptr<api::DiagnosticsAPIAdapter> getDiagnostics() {
         return diagnostics;
     }
 

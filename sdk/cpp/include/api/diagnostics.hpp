@@ -7,10 +7,73 @@
 #include "../portal.hpp"
 #include "../protocol/messages.hpp"
 
+
+// break the circular dependency
+namespace directmq::network::edge {
+class NetworkEdge;
+}  // namespace directmq::network::edge
+
 namespace directmq::api {
-class DiagnosticsAPI : public network::NetworkParticipant {
+
+
+using ConnectionEstablishedHandler = void(const std::string& bridgedNodeID,
+                                          portal::Portal& portal);
+
+using ConnectionLostHandler = void(const std::string& bridgedNodeID,
+                                   const std::string& reason,
+                                   portal::Portal& portal);
+
+using EdgeDisconnectedHandler = void(const std::string& bridgedNodeID,
+                                     const std::string& reason,
+                                     network::edge::NetworkEdge& edge,
+                                     portal::Portal& portal);
+
+using PublicationHandler = void(const protocol::messages::PublishMessage& publication);
+
+using SubscriptionHandler = void(const protocol::messages::SubscribeMessage& subscription);
+
+using UnsubscribeHandler = void(const protocol::messages::UnsubscribeMessage& unsubscription);
+
+using TerminateNetworkHandler = void(const protocol::messages::TerminateNetworkMessage& termination);
+
+
+class DiagnosticsAPI {
    public:
     virtual ~DiagnosticsAPI() = default;
+
+    virtual void setOnConnectionEstablishedHandler(
+        std::function<ConnectionEstablishedHandler>
+            handler) = 0;
+
+    virtual void setOnEdgeDisconnectionHandler(
+        std::function<EdgeDisconnectedHandler>
+            handler) = 0;
+
+    virtual void setOnPublicationHandler(
+        std::function<PublicationHandler>
+            handler) = 0;
+
+    virtual void setOnSubscriptionHandler(
+        std::function<SubscriptionHandler>
+            handler) = 0;
+
+    virtual void setOnUnsubscribeHandler(
+        std::function<UnsubscribeHandler>
+            handler) = 0;
+
+    virtual void setOnTerminateNetworkHandler(
+        std::function<TerminateNetworkHandler>
+            handler) = 0;
+};
+
+class DiagnosticsAPIAdapter : public DiagnosticsAPI, public network::NetworkParticipant {
+   public:
+    virtual ~DiagnosticsAPIAdapter() = default;
+
+    // required for NetworkNode setup
+    virtual void setOnConnectionLostHandler(
+        std::function<ConnectionLostHandler>
+            handler) = 0;
 
     virtual void onConnectionEstablished(const std::string& bridgedNodeID,
                                          directmq::portal::Portal& portal) = 0;
@@ -19,38 +82,33 @@ class DiagnosticsAPI : public network::NetworkParticipant {
                                   const std::string& reason,
                                   directmq::portal::Portal& portal) = 0;
 
-    // required for NetworkNode setup
-    virtual void setOnConnectionLostHandler(
-        std::function<void(const std::string& bridgedNodeID,
-                           const std::string& reason,
-                           directmq::portal::Portal& portal)>
-            handler) = 0;
+    virtual void onEdgeDisconnection(const std::string& bridgedNodeID,
+                                     const std::string& reason,
+                                     directmq::network::edge::NetworkEdge& edge,
+                                     directmq::portal::Portal& portal) = 0;
 };
 
-class DiagnosticsAPILambdaHandler : public DiagnosticsAPI {
+class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
    private:
-    std::function<void(const std::string& bridgedNodeID,
-                       directmq::portal::Portal& portal)>
+    std::function<ConnectionEstablishedHandler>
         onConnectionEstablishedHandler;
 
-    std::function<void(const std::string& bridgedNodeID,
-                       const std::string& reason,
-                       directmq::portal::Portal& portal)>
+    std::function<ConnectionLostHandler>
         onConnectionLostHandler;
 
-    std::function<void(const protocol::messages::PublishMessage& publication)>
+    std::function<EdgeDisconnectedHandler>
+        onEdgeDisconnectionHandler;
+
+    std::function<PublicationHandler>
         onPublicationHandler;
 
-    std::function<void(
-        const protocol::messages::SubscribeMessage& subscription)>
+    std::function<SubscriptionHandler>
         onSubscriptionHandler;
 
-    std::function<void(
-        const protocol::messages::UnsubscribeMessage& unsubscription)>
+    std::function<UnsubscribeHandler>
         onUnsubscribeHandler;
 
-    std::function<void(
-        const protocol::messages::TerminateNetworkMessage& termination)>
+    std::function<TerminateNetworkHandler>
         onTerminateNetworkHandler;
 
    public:
@@ -63,15 +121,18 @@ class DiagnosticsAPILambdaHandler : public DiagnosticsAPI {
         return false;
     }
 
+    bool alreadyHandlesPattern(const std::string& pattern) const override {
+        return false;
+    }
+
     bool isOriginOfFrame(
         const protocol::messages::DataFrame& frame) const override {
         return false;
     }
 
     void setOnConnectionEstablishedHandler(
-        std::function<void(const std::string& bridgedNodeID,
-                           directmq::portal::Portal& portal)>
-            handler) {
+        std::function<ConnectionEstablishedHandler>
+            handler) override {
         onConnectionEstablishedHandler = handler;
     }
 
@@ -83,10 +144,8 @@ class DiagnosticsAPILambdaHandler : public DiagnosticsAPI {
     }
 
     void setOnConnectionLostHandler(
-        std::function<void(const std::string& bridgedNodeID,
-                           const std::string& reason,
-                           directmq::portal::Portal& portal)>
-            handler) {
+        std::function<ConnectionLostHandler>
+            handler) override {
         onConnectionLostHandler = handler;
     }
 
@@ -98,10 +157,24 @@ class DiagnosticsAPILambdaHandler : public DiagnosticsAPI {
         }
     }
 
+    void setOnEdgeDisconnectionHandler(
+        std::function<EdgeDisconnectedHandler>
+            handler) override {
+        onEdgeDisconnectionHandler = handler;
+    }
+
+    void onEdgeDisconnection(const std::string& bridgedNodeID,
+                             const std::string& reason,
+                             directmq::network::edge::NetworkEdge& edge,
+                             directmq::portal::Portal& portal) override {
+        if (onEdgeDisconnectionHandler) {
+            onEdgeDisconnectionHandler(bridgedNodeID, reason, edge, portal);
+        }
+    }
+
     void setOnPublicationHandler(
-        std::function<
-            void(const protocol::messages::PublishMessage& publication)>
-            handler) {
+        std::function<PublicationHandler>
+            handler) override {
         onPublicationHandler = handler;
     }
 
@@ -117,9 +190,8 @@ class DiagnosticsAPILambdaHandler : public DiagnosticsAPI {
     }
 
     void setOnSubscriptionHandler(
-        std::function<
-            void(const protocol::messages::SubscribeMessage& subscription)>
-            handler) {
+        std::function<SubscriptionHandler>
+            handler) override {
         onSubscriptionHandler = handler;
     }
 
@@ -131,9 +203,8 @@ class DiagnosticsAPILambdaHandler : public DiagnosticsAPI {
     }
 
     void setOnUnsubscribeHandler(
-        std::function<
-            void(const protocol::messages::UnsubscribeMessage& unsubscription)>
-            handler) {
+        std::function<UnsubscribeHandler>
+            handler) override {
         onUnsubscribeHandler = handler;
     }
 
@@ -145,9 +216,8 @@ class DiagnosticsAPILambdaHandler : public DiagnosticsAPI {
     }
 
     void setOnTerminateNetworkHandler(
-        std::function<void(
-            const protocol::messages::TerminateNetworkMessage& termination)>
-            handler) {
+        std::function<TerminateNetworkHandler>
+            handler) override {
         onTerminateNetworkHandler = handler;
     }
 

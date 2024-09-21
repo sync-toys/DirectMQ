@@ -54,9 +54,7 @@ class NetworkNode : public EdgeManager, public api::DiagnosticsAPI {
             edges.erase(edge);
         }
 
-        if (onConnectionLostCallback) {
-            onConnectionLostCallback(bridgedNodeID, reason, portal);
-        }
+        diagnosticsAPI->onEdgeDisconnection(bridgedNodeID, reason, *edge->get(), portal);
 
         if (edges.size() == 0 && onNodeFullyClosedCallback) {
             onNodeFullyClosedCallback();
@@ -67,7 +65,7 @@ class NetworkNode : public EdgeManager, public api::DiagnosticsAPI {
    public:
     NetworkNode(const network::NetworkNodeConfig& config,
                 std::shared_ptr<api::NativeAPIAdapter> nativeAPI,
-                std::shared_ptr<api::DiagnosticsAPI> diagnosticsAPI,
+                std::shared_ptr<api::DiagnosticsAPIAdapter> diagnosticsAPI,
                 std::shared_ptr<protocol::Encoder> encoder,
                 std::shared_ptr<protocol::Decoder> decoder)
         : nativeAPI(nativeAPI),
