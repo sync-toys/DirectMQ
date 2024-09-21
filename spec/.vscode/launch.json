@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to Go Spec Agent",
+            "type": "go",
+            "request": "attach",
+            "mode": "remote",
+            "remotePath": "/directmq",
+            "port": 2345,
+            "host": "127.0.0.1",
+        },
+        {
+            "name": "Attach to C++ Spec Agent",
+            "type": "gdb",
+            "request": "attach",
+            "executable": "${workspaceFolder}/agents/cpp/build/directmq-sdk-agent",
+            "target": "127.0.0.1:3456",
+            "cwd": "${workspaceFolder}/agents/cpp",
+            "stopAtEntry": true,
+            "remote": true,
+        }
+    ]
+}
