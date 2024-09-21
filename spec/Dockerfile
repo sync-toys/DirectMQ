@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     gdb \
     catch2 \
+    protobuf-compiler \
     libwebsockets-dev
 
 RUN apt-get remove -y cmake && \
