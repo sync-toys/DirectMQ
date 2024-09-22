@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "api/diagnostics.hpp"
 #include "api/native.hpp"
 #include "network/edge/network_edge.hpp"
@@ -25,15 +27,15 @@ class DirectMQNode : public network::NodeManager,
 
    public:
     DirectMQNode(const network::NetworkNodeConfig& config)
-        : node(std::make_shared<network::NetworkNode>(
-              config, nativeAPI, diagnosticsAPI, encoder, decoder)),
-          nativeAPI(std::make_shared<api::NativeLambdaAPIAdapter>()),
+        : nativeAPI(std::make_shared<api::NativeLambdaAPIAdapter>()),
           diagnosticsAPI(std::make_shared<api::DiagnosticsAPILambdaAdapter>()),
           decoder(std::make_shared<
                   protocol::embedded::EmbeddedProtocolDecoderImplementation>()),
           encoder(
               std::make_shared<protocol::embedded::
-                                   EmbeddedProtocolEncoderImplementation>()) {}
+                                   EmbeddedProtocolEncoderImplementation>()),
+          node(std::make_shared<network::NetworkNode>(
+              config, nativeAPI, diagnosticsAPI, encoder, decoder)) {}
 
     ~DirectMQNode() {
         node->closeNode("node is being destroyed", []() {});
