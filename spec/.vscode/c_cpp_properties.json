@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "Devcontainer",
+            "name": "Specification in Devcontainer",
             "compileCommands": "${workspaceFolder}/agents/cpp/build/compile_commands.json",
             "configurationProvider": "ms-vscode.cmake-tools",
             "includePath": [
