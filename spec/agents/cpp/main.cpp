@@ -4,7 +4,8 @@
 #include <sstream>
 #include <string>
 #include <thread>
-#include <vector>
+#include <mutex>
+#include <atomic>
 
 #include <directmq.hpp>
 #include <portals/websocket/client.hpp>
@@ -24,6 +25,12 @@ std::string getCurrentTimeString() {
     return oss.str();
 }
 
+std::mutex nodeMutex;
+
+std::mutex exitMutex;
+const int NO_EXIT = -1;
+std::atomic<int> exitFlag(NO_EXIT);
+
 directmq::DirectMQNode *node;
 std::shared_ptr<directmq::portal::websocket::Runnable> runnablePortalHost;
 
@@ -37,9 +44,14 @@ void sendNotification(const UniversalNotification &notification) {
     std::cout.flush();
 }
 
+void exitAgent(int exitCode) {
+    exitFlag = exitCode;
+    exitMutex.unlock();
+}
+
 void fatal(const std::string &error) {
     sendNotification(UniversalNotification::makeFatal(error));
-    exit(1);
+    exitAgent(1);
 }
 
 void registerDiagnosticsHandlers() {
@@ -123,7 +135,6 @@ void handleListenCommand(ListenCommand command) {
 
     if (result.error) {
         fatal("Failed to listen as server: " + std::string(result.error));
-        exit(1);
     }
 
     runnablePortalHost.reset();
@@ -140,7 +151,6 @@ void handleConnectCommand(ConnectCommand command) {
 
     if (result.error) {
         fatal("Failed to connect as client: " + std::string(result.error));
-        exit(1);
     }
 
     runnablePortalHost.reset();
@@ -155,7 +165,7 @@ void handleStopCommand(StopCommand command) {
     });
 
     log("Clean exit 0");
-    exit(0);
+    exitAgent(0);
 }
 
 void handlePublishCommand(PublishCommand command) {
@@ -189,6 +199,8 @@ void handleUnsubscribeCommand(UnsubscribeTopicCommand command) {
 }
 
 void handleIncomingCommand(const UniversalCommand &command) {
+    std::lock_guard<std::mutex> lock(nodeMutex);
+
     if (command.setup) {
         handleSetupCommand(*command.setup);
     }
@@ -218,74 +230,63 @@ void handleIncomingCommand(const UniversalCommand &command) {
     }
 }
 
-std::string stdinBuffer;
 std::string readCommandFromStdin() {
-    std::cin.seekg(0, std::cin.end);
-    int length = std::cin.tellg();
-    if (length < 1) {
-        return "";
-    }
-
-    std::cin.seekg(0, std::cin.beg);
-    std::string data(length, ' ');
-    std::cin.read(const_cast<char *>(data.c_str()), length);
-
-    stdinBuffer += data;
-
-    if (stdinBuffer.find('\n') != std::string::npos) {
-        std::string line = stdinBuffer.substr(0, stdinBuffer.find('\n'));
-        stdinBuffer = stdinBuffer.substr(stdinBuffer.find('\n') + 1);
-        return line;
-    }
-
-    return "";
+    std::string rawCommand;
+    std::getline(std::cin, rawCommand);
+    return rawCommand;
 }
 
 void runCommandLoop() {
-    try {
-        std::string rawCommand = readCommandFromStdin();
-        if (rawCommand.empty()) {
-            return;
-        }
+    while(exitFlag == NO_EXIT) {
+        try {
+            std::string rawCommand = readCommandFromStdin();
+            if (rawCommand.empty()) {
+                return;
+            }
 
-        UniversalCommand command = UniversalCommand::fromJson(rawCommand);
-        handleIncomingCommand(command);
-    } catch (const std::exception &e) {
-        fatal(e.what());
+            UniversalCommand command = UniversalCommand::fromJson(rawCommand);
+            handleIncomingCommand(command);
+        } catch (const std::exception &e) {
+            fatal("Command loop fatal failure: " + std::string(e.what()));
+        }
     }
 }
 
 void runNodeLoop() {
-    if (!node || !runnablePortalHost) {
-        return;
-    }
+    while(exitFlag == NO_EXIT) {
+        try {
+            std::lock_guard<std::mutex> lock(nodeMutex);
 
-    runnablePortalHost->run(0);
+            if (!node || !runnablePortalHost) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                return;
+            }
+
+            runnablePortalHost->run(100);
+        } catch (const std::exception &e) {
+            fatal("Node loop fatal failure: " + std::string(e.what()));
+        }
+    }
 }
 
 int main() {
     log("Starting DirectMQ testing agent");
+
+    // initialize exit mutex
+    exitMutex.lock();
+
+    log("Starting node loop");
+    std::thread nodeLoop(runNodeLoop);
+
+    log("Starting command loop");
+    std::thread commandLoop(runCommandLoop);
+
+    log("Agent ready");
     sendNotification(UniversalNotification::makeReady(getCurrentTimeString()));
 
-    log("Starting main loop");
-    while (true) {
-        try {
-            auto currentMillis =
-                std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::system_clock::now().time_since_epoch());
+    // exit mutex is unlocked when exitAgent is called
+    exitMutex.lock();
 
-            runCommandLoop();
-            runNodeLoop();
-
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds(100) -
-                (std::chrono::duration_cast<std::chrono::milliseconds>(
-                     std::chrono::system_clock::now().time_since_epoch()) -
-                 currentMillis));
-        } catch (const std::exception &e) {
-            fatal("Main loop fatal failure: " + std::string(e.what()));
-        }
-    }
-
-    return 0;
+    log("Exiting agent with code " + std::to_string(exitFlag));
+    return exitFlag;
 }
