@@ -8,13 +8,11 @@ RUN apt update && apt install -y \
     gcc \
     g++ \
     gdb \
-    catch2 \
     cmake \
     golang-go \
     python3 \
     python3-setuptools \
     protobuf-compiler \
-    libwebsockets-dev \
     clang-tools \
     clang-format \
     clang-tidy \
