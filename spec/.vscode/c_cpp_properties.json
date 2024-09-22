@@ -3,7 +3,11 @@
         {
             "name": "Devcontainer",
             "compileCommands": "${workspaceFolder}/agents/cpp/build/compile_commands.json",
-            "configurationProvider": "ms-vscode.cmake-tools"
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "includePath": [
+                "${workspaceFolder}/agents/cpp/**",
+                "${workspaceFolder}/../sdk/cpp/include/**"
+            ],
         }
     ],
     "version": 4
