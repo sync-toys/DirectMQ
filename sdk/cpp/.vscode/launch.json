@@ -5,7 +5,7 @@
             "name": "Debug tests",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/test/directmq-sdk-test",
+            "program": "${workspaceFolder}/build/debug/test/directmq-sdk-test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
