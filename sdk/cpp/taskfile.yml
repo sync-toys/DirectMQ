@@ -27,7 +27,7 @@ tasks:
         silent: true
         cmds:
             - echo "Generating cmake configuration for {{.BUILD_DIRECTORY}}"
-            - cmake -B {{.BUILD_DIRECTORY}} -S . -DCMAKE_BUILD_TYPE={{.CMAKE_BUILD_TYPE}} -DDMQ_BUILD_TESTS={{.DMQ_BUILD_TESTS}} -DFETCHCONTENT_BASE_DIR=./build/_deps
+            - cmake -B {{.BUILD_DIRECTORY}} -S . -DCMAKE_BUILD_TYPE={{.CMAKE_BUILD_TYPE}} -DDMQ_BUILD_TESTS={{.DMQ_BUILD_TESTS}} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFETCHCONTENT_BASE_DIR=./build/_deps
 
     build:
         desc: Build the DirectMQ C++ SDK in debug mode
@@ -70,9 +70,15 @@ tasks:
         desc: Run static analysis on the DirectMQ C++ SDK source code
         silent: true
         cmds:
-            - echo "Analyzing source code"
-            - cmake -B build/debug -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-            - find include src test -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | xargs clang-tidy -p build
+            - echo "Analyzing C++ SDK source code"
+
+            - task: generate
+              vars:
+                  BUILD_DIRECTORY: build/debug
+                  CMAKE_BUILD_TYPE: Debug
+                  DMQ_BUILD_TESTS: OFF
+
+            - find include src test -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | xargs clang-tidy -p build/debug
 
     test:
         desc: Run the DirectMQ C++ SDK tests
