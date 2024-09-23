@@ -35,15 +35,15 @@ class GlobalNetwork {
     }
 
    public:
-    const NetworkNodeConfig config;
-
     GlobalNetwork(const NetworkNodeConfig& config,
                   std::shared_ptr<NetworkParticipant> nativeAPI,
                   std::shared_ptr<api::DiagnosticsAPIAdapter> diagnostics)
-        : config(config),
+        : participants({nativeAPI}),
           nativeAPI(nativeAPI),
           diagnostics(diagnostics),
-          participants({nativeAPI}) {}
+          config(config) {}
+
+    const NetworkNodeConfig config;
 
     std::shared_ptr<api::DiagnosticsAPIAdapter> getDiagnostics() {
         return diagnostics;

@@ -17,13 +17,13 @@ class DirectMQNode : public network::NodeManager,
                      public api::NativeLambdaAPI,
                      public api::DiagnosticsAPI {
    private:
-    std::shared_ptr<network::NetworkNode> node;
     std::shared_ptr<api::NativeLambdaAPIAdapter> nativeAPI;
     std::shared_ptr<api::DiagnosticsAPILambdaAdapter> diagnosticsAPI;
     std::shared_ptr<protocol::embedded::EmbeddedProtocolDecoderImplementation>
         decoder;
     std::shared_ptr<protocol::embedded::EmbeddedProtocolEncoderImplementation>
         encoder;
+    std::shared_ptr<network::NetworkNode> node;
 
    public:
     DirectMQNode(const network::NetworkNodeConfig& config)
@@ -31,9 +31,8 @@ class DirectMQNode : public network::NodeManager,
           diagnosticsAPI(std::make_shared<api::DiagnosticsAPILambdaAdapter>()),
           decoder(std::make_shared<
                   protocol::embedded::EmbeddedProtocolDecoderImplementation>()),
-          encoder(
-              std::make_shared<protocol::embedded::
-                                   EmbeddedProtocolEncoderImplementation>()),
+          encoder(std::make_shared<
+                  protocol::embedded::EmbeddedProtocolEncoderImplementation>()),
           node(std::make_shared<network::NetworkNode>(
               config, nativeAPI, diagnosticsAPI, encoder, decoder)) {}
 
