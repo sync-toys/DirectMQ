@@ -60,10 +60,13 @@ class NetworkEdgeStateConnecting : public NetworkEdgeState {
 
     void acceptEdgeConnection() {
         protocol::messages::ConnectionAcceptedMessage caMessage{
-            .frame = protocol::messages::DataFrame{
-                .ttl = ONLY_DIRECT_CONNECTION_TTL,
-                .traversed = {edge->globalNetwork->config.hostID},
-            }};
+            .frame =
+                protocol::messages::DataFrame{
+                    .ttl = ONLY_DIRECT_CONNECTION_TTL,
+                    .traversed = {edge->globalNetwork->config.hostID},
+                },
+            .maxMessageSize =
+                edge->globalNetwork->config.hostMaxIncomingMessageSize};
 
         auto result =
             edge->encoder->connectionAccepted(caMessage, *edge->portal);
@@ -119,15 +122,18 @@ class NetworkEdgeStateConnecting : public NetworkEdgeState {
     }
 
     bool willHandleTopic(const std::string& topic) const override {
+        (void)topic;
         return false;
     }
 
     bool alreadyHandlesPattern(const std::string& pattern) const override {
+        (void)pattern;
         return false;
     }
 
     bool isOriginOfFrame(
         const protocol::messages::DataFrame& frame) const override {
+        (void)frame;
         throw std::runtime_error(
             "this method should not be used, use NetworkEdge::isOriginOfFrame "
             "instead");
@@ -136,23 +142,27 @@ class NetworkEdgeStateConnecting : public NetworkEdgeState {
     bool handlePublish(
         const protocol::messages::PublishMessage& publication) override {
         // we are connecting, we cannot handle any publications
+        (void)publication;
         return false;
     }
 
     void handleSubscribe(
         const protocol::messages::SubscribeMessage& subscription) override {
         // we are connecting, we cannot handle any subscriptions
+        (void)subscription;
     }
 
     void handleUnsubscribe(
         const protocol::messages::UnsubscribeMessage& unsubscription) override {
         // we are connecting, we cannot handle any unsubscriptions
+        (void)unsubscription;
     }
 
     void handleTerminateNetwork(
         const protocol::messages::TerminateNetworkMessage& termination)
         override {
         // we are connecting, we cannot handle any network terminations
+        (void)termination;
     }
 
     /**
@@ -236,18 +246,21 @@ class NetworkEdgeStateConnecting : public NetworkEdgeState {
     }
 
     void onPublish(const protocol::messages::PublishMessage& message) override {
+        (void)message;
         edge->setDisconnectingState(
             "Unexpected publish message received during connection process");
     }
 
     void onSubscribe(
         const protocol::messages::SubscribeMessage& message) override {
+        (void)message;
         edge->setDisconnectingState(
             "Unexpected subscribe message received during connection process");
     }
 
     void onUnsubscribe(
         const protocol::messages::UnsubscribeMessage& message) override {
+        (void)message;
         edge->setDisconnectingState(
             "Unexpected unsubscribe message received during connection "
             "process");
@@ -255,6 +268,7 @@ class NetworkEdgeStateConnecting : public NetworkEdgeState {
 
     void onMalformedMessage(
         const protocol::messages::MalformedMessage& message) override {
+        (void)message;
         edge->setDisconnectingState(
             "Malformed message received during connection process");
     }
