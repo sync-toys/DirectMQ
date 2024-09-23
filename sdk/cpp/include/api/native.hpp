@@ -98,7 +98,9 @@ class NativeLambdaAPIAdapter : public NativeLambdaAPI, public NativeAPIAdapter {
     void publish(
         const std::string& topic, const std::vector<uint8_t>& payload,
         const protocol::messages::DeliveryStrategy& deliveryStrategy) override {
-        if (topics::isCorrectTopicPattern(topic)) {
+        if (!topics::isCorrectTopicPattern(
+                topic)) {  // TODO: not isCorrectTopicPattern but
+                           // isCorrectTopic!!!
             throw std::runtime_error("incorrect topic");
         }
 
@@ -117,7 +119,7 @@ class NativeLambdaAPIAdapter : public NativeLambdaAPI, public NativeAPIAdapter {
 
     int subscribe(const std::string& topic,
                   std::function<LambdaMessageHandler> handler) {
-        if (topics::isCorrectTopicPattern(topic)) {
+        if (!topics::isCorrectTopicPattern(topic)) {
             throw std::runtime_error("incorrect topic");
         }
 
