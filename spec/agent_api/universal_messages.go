@@ -4,125 +4,125 @@ import directmq "github.com/sync-toys/DirectMQ/sdk/go"
 
 type UniversalCommand struct {
 	// Connection API
-	Setup   *SetupCommand
-	Listen  *ListenCommand
-	Connect *ConnectCommand
-	Stop    *StopCommand
+	Setup   *SetupCommand   `json:"setup,omitempty"`
+	Listen  *ListenCommand  `json:"listen,omitempty"`
+	Connect *ConnectCommand `json:"connect,omitempty"`
+	Stop    *StopCommand    `json:"stop,omitempty"`
 
 	// Native API
-	Publish          *PublishCommand
-	SubscribeTopic   *SubscribeTopicCommand
-	UnsubscribeTopic *UnsubscribeTopicCommand
+	Publish          *PublishCommand          `json:"publish,omitempty"`
+	SubscribeTopic   *SubscribeTopicCommand   `json:"subscribeTopic,omitempty"`
+	UnsubscribeTopic *UnsubscribeTopicCommand `json:"unsubscribeTopic,omitempty"`
 }
 
 type UniversalNotification struct {
 	// Agent API
-	Ready           *ReadyNotification
-	Fatal           *FatalNotification
-	MessageReceived *MessageReceivedNotification
-	Subscribed      *SubscribedNotification
-	Stopped         *StoppedNotification
+	Ready           *ReadyNotification           `json:"ready,omitempty"`
+	Fatal           *FatalNotification           `json:"fatal,omitempty"`
+	MessageReceived *MessageReceivedNotification `json:"messageReceived,omitempty"`
+	Subscribed      *SubscribedNotification      `json:"subscribed,omitempty"`
+	Stopped         *StoppedNotification         `json:"stopped,omitempty"`
 
 	// Diagnostics API
-	ConnectionEstablished *ConnectionEstablishedNotification
-	ConnectionLost        *ConnectionLostNotification
-	OnPublication         *OnPublicationNotification
-	OnSubscription        *OnSubscriptionNotification
-	OnUnsubscribe         *OnUnsubscribeNotification
-	OnNetworkTermination  *OnNetworkTerminationNotification
+	ConnectionEstablished *ConnectionEstablishedNotification `json:"connectionEstablished,omitempty"`
+	ConnectionLost        *ConnectionLostNotification        `json:"connectionLost,omitempty"`
+	OnPublication         *OnPublicationNotification         `json:"onPublication,omitempty"`
+	OnSubscription        *OnSubscriptionNotification        `json:"onSubscription,omitempty"`
+	OnUnsubscribe         *OnUnsubscribeNotification         `json:"onUnsubscribe,omitempty"`
+	OnNetworkTermination  *OnNetworkTerminationNotification  `json:"onNetworkTermination,omitempty"`
 }
 
 // Connection API
 
 type SetupCommand struct {
-	TTL            int32
-	NodeID         string
-	MaxMessageSize uint64
+	TTL            int32  `json:"ttl"`
+	NodeID         string `json:"nodeId,omitempty"`
+	MaxMessageSize uint64 `json:"maxMessageSize"`
 }
 
 type ListenCommand struct {
-	Address string
+	Address string `json:"address,omitempty"`
 }
 
 type ConnectCommand struct {
-	Address string
+	Address string `json:"address,omitempty"`
 }
 
 type StopCommand struct {
-	Reason string
+	Reason string `json:"reason,omitempty"`
 }
 
 // Agent API
 
 type ConnectionEstablishedNotification struct {
-	BridgedNodeId string
+	BridgedNodeId string `json:"bridgedNodeId,omitempty"`
 }
 
 type ConnectionLostNotification struct {
-	BridgedNodeId string
-	Reason        string
+	BridgedNodeId string `json:"bridgedNodeId,omitempty"`
+	Reason        string `json:"reason,omitempty"`
 }
 
 type ReadyNotification struct {
-	Time string
+	Time string `json:"time,omitempty"`
 }
 
 type FatalNotification struct {
-	Err string
+	Err string `json:"err,omitempty"`
 }
 
 type MessageReceivedNotification struct {
-	Topic   string
-	Payload []byte
+	Topic   string `json:"topic,omitempty"`
+	Payload []byte `json:"payload,omitempty"`
 }
 
 type SubscribedNotification struct {
-	SubscriptionID directmq.SubscriptionID
+	SubscriptionID directmq.SubscriptionID `json:"subscriptionId,omitempty"`
 }
 
 type StoppedNotification struct {
-	Reason string
+	Reason string `json:"reason,omitempty"`
 }
 
 // Native API
 
 type PublishCommand struct {
-	Topic            string
-	DeliveryStrategy directmq.DeliveryStrategy
-	Payload          []byte
+	Topic            string                    `json:"topic,omitempty"`
+	DeliveryStrategy directmq.DeliveryStrategy `json:"deliveryStrategy,omitempty"`
+	Payload          []byte                    `json:"payload,omitempty"`
 }
 type SubscribeTopicCommand struct {
-	Topic string
+	Topic string `json:"topic,omitempty"`
 }
 
 type UnsubscribeTopicCommand struct {
-	SubscriptionID directmq.SubscriptionID
+	SubscriptionID directmq.SubscriptionID `json:"subscriptionId,omitempty"`
 }
 
 // Diagnostics API
 
 type OnPublicationNotification struct {
-	TTL              int32
-	Traversed        []string
-	Topic            string
-	DeliveryStrategy directmq.DeliveryStrategy
-	Payload          []byte
+	TTL              int32                     `json:"ttl"`
+	Traversed        []string                  `json:"traversed,omitempty"`
+	Topic            string                    `json:"topic,omitempty"`
+	DeliveryStrategy directmq.DeliveryStrategy `json:"deliveryStrategy,omitempty"`
+	Payload          []byte                    `json:"payload,omitempty"`
 }
 
 type OnSubscriptionNotification struct {
-	TTL       int32
-	Traversed []string
-	Topic     string
+	TTL       int32    `json:"ttl"`
+	Traversed []string `json:"traversed,omitempty"`
+	Topic     string   `json:"topic,omitempty"`
 }
 
 type OnUnsubscribeNotification struct {
-	TTL       int32
-	Traversed []string
-	Topic     string
+	TTL       int32    `json:"ttl"`
+	Traversed []string `json:"traversed,omitempty"`
+	Topic     string   `json:"topic,omitempty"`
 }
 
 type OnNetworkTerminationNotification struct {
-	TTL       int32
-	Traversed []string
-	Reason    string
+	TTL       int32    `json:"ttl"`
+	Traversed []string `json:"traversed,omitempty"`
+	Reason    string   `json:"reason,omitempty"`
 }
