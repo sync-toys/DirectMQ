@@ -21,6 +21,13 @@ tasks:
             - echo "Cleaning build and dependencies directories"
             - rm -rf build
 
+    install:
+        desc: Install the DirectMQ C++ SDK dependencies
+        silent: true
+        cmds:
+            - echo "Installing C++ SDK dependencies"
+            - conan install . -sbuild_type=Debug -of=conan/debug --build=missing
+
     generate:
         desc: Generate cmake build configuration
         internal: true
