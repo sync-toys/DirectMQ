@@ -47,15 +47,18 @@ class NetworkEdgeStateDisconnecting : public NetworkEdgeState {
     }
 
     bool willHandleTopic(const std::string& topic) const override {
+        (void)topic;
         return false;
     }
 
     bool alreadyHandlesPattern(const std::string& pattern) const override {
+        (void)pattern;
         return false;
     }
 
     bool isOriginOfFrame(
         const protocol::messages::DataFrame& frame) const override {
+        (void)frame;
         throw std::runtime_error(
             "this method should not be used, use NetworkEdge::isOriginOfFrame "
             "instead");
@@ -64,23 +67,27 @@ class NetworkEdgeStateDisconnecting : public NetworkEdgeState {
     bool handlePublish(
         const protocol::messages::PublishMessage& publication) override {
         // we are disconnecting, we cannot handle any publications
+        (void)publication;
         return false;
     }
 
     void handleSubscribe(
         const protocol::messages::SubscribeMessage& subscription) override {
         // we are disconnecting, we cannot handle any subscriptions
+        (void)subscription;
     }
 
     void handleUnsubscribe(
         const protocol::messages::UnsubscribeMessage& unsubscription) override {
         // we are disconnecting, we cannot handle any unsubscriptions
+        (void)unsubscription;
     }
 
     void handleTerminateNetwork(
         const protocol::messages::TerminateNetworkMessage& termination)
         override {
         // we are disconnecting, we cannot handle any network terminations
+        (void)termination;
     }
 
     /**
@@ -91,45 +98,54 @@ class NetworkEdgeStateDisconnecting : public NetworkEdgeState {
         const protocol::messages::SupportedProtocolVersionsMessage& message)
         override {
         // we are disconnecting, we cannot handle any messages
+        (void)message;
     }
 
     void onInitConnection(
         const protocol::messages::InitConnectionMessage& message) override {
         // we are disconnecting, we cannot handle any messages
+        (void)message;
     }
 
     void onConnectionAccepted(
         const protocol::messages::ConnectionAcceptedMessage& message) override {
         // we are disconnecting, we cannot handle any messages
+        (void)message;
     }
 
     void onGracefullyClose(
         const protocol::messages::GracefullyCloseMessage& message) override {
         // we are disconnecting, we cannot handle any messages
+        (void)message;
     }
 
     void onTerminateNetwork(
         const protocol::messages::TerminateNetworkMessage& message) override {
         // we are disconnecting, we cannot handle any messages
+        (void)message;
     }
 
     void onPublish(const protocol::messages::PublishMessage& message) override {
         // we are disconnecting, we cannot handle any messages
+        (void)message;
     }
 
     void onSubscribe(
         const protocol::messages::SubscribeMessage& message) override {
         // we are disconnecting, we cannot handle any messages
+        (void)message;
     }
 
     void onUnsubscribe(
         const protocol::messages::UnsubscribeMessage& message) override {
         // we are disconnecting, we cannot handle any messages
+        (void)message;
     }
 
     void onMalformedMessage(
         const protocol::messages::MalformedMessage& message) override {
         // we are disconnecting, we cannot handle any messages
+        (void)message;
     }
 };
 }  // namespace directmq::network::edge

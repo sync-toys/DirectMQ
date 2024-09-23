@@ -109,6 +109,7 @@ class NetworkEdgeStateConnected : public NetworkEdgeState {
 
     bool isOriginOfFrame(
         const protocol::messages::DataFrame& frame) const override {
+        (void)frame;
         throw std::runtime_error(
             "this method should not be used, use NetworkEdge::isOriginOfFrame "
             "instead");
@@ -231,6 +232,7 @@ class NetworkEdgeStateConnected : public NetworkEdgeState {
     void onSupportedProtocolVersions(
         const protocol::messages::SupportedProtocolVersionsMessage& message)
         override {
+        (void)message;
         edge->setDisconnectingState(
             "Unexpected supported protocol versions message in connected "
             "state");
@@ -238,12 +240,14 @@ class NetworkEdgeStateConnected : public NetworkEdgeState {
 
     void onInitConnection(
         const protocol::messages::InitConnectionMessage& message) override {
+        (void)message;
         edge->setDisconnectingState(
             "Unexpected init connection message in connected state");
     }
 
     void onConnectionAccepted(
         const protocol::messages::ConnectionAcceptedMessage& message) override {
+        (void)message;
         edge->setDisconnectingState(
             "Unexpected connection accepted message in connected state");
     }
@@ -287,6 +291,7 @@ class NetworkEdgeStateConnected : public NetworkEdgeState {
 
     void onMalformedMessage(
         const protocol::messages::MalformedMessage& message) override {
+        (void)message;
         edge->setDisconnectingState("Malformed message received");
     }
 };

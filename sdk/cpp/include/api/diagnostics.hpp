@@ -106,15 +106,18 @@ class DiagnosticsAPILambdaAdapter : public DiagnosticsAPIAdapter {
     }
 
     bool willHandleTopic(const std::string& topic) const override {
+        (void)topic;
         return false;
     }
 
     bool alreadyHandlesPattern(const std::string& pattern) const override {
+        (void)pattern;
         return false;
     }
 
     bool isOriginOfFrame(
         const protocol::messages::DataFrame& frame) const override {
+        (void)frame;
         return false;
     }
 

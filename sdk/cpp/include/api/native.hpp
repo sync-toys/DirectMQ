@@ -183,17 +183,20 @@ class NativeLambdaAPIAdapter : public NativeLambdaAPI, public NativeAPIAdapter {
 
     void handleSubscribe(
         const protocol::messages::SubscribeMessage& subscription) override {
+        (void)subscription;
         /* No-op */
     }
 
     void handleUnsubscribe(
         const protocol::messages::UnsubscribeMessage& unsubscription) override {
+        (void)unsubscription;
         /* No-op */
     }
 
     void handleTerminateNetwork(
         const protocol::messages::TerminateNetworkMessage& termination)
         override {
+        (void)termination;
         /* No-op */
     }
 };
