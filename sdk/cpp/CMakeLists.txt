@@ -14,8 +14,7 @@ target_include_directories(directmq-sdk PUBLIC
 
 target_link_libraries(directmq-sdk PRIVATE
     protobuf-nanopb-static
-    dmq_proto_embedded
-    websockets)
+    dmq_proto_embedded)
 
 option(DMQ_BUILD_TESTS "Enable DirectMQ C++ SDK testing" OFF)
 

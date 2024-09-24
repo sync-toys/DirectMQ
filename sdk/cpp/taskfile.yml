@@ -7,64 +7,85 @@ tasks:
         cmds:
             - task --list-all
 
-    clean:
+    clean:build:
         desc: Clean the DirectMQ C++ SDK build directory
         silent: true
+        aliases:
+            - clean
         cmds:
             - echo "Cleaning C++ SDK build directory"
-            - rm -rf build/debug build/release
+            - rm -rf rm -rf build/Debug build/Release
 
-    clean:all:
-        desc: Clean the DirectMQ C++ SDK build and dependencies directories
+    clean:deps:
+        desc: Clean the DirectMQ C++ SDK dependencies
         silent: true
         cmds:
-            - echo "Cleaning build and dependencies directories"
-            - rm -rf build
+            - echo "Cleaning C++ SDK dependencies"
+            - rm -rf build/_deps
+
+    conan:install:
+        desc: Install the DirectMQ C++ SDK dependencies
+        silent: true
+        internal: true
+        cmds:
+            - echo "Installing C++ SDK {{.BUILD_TYPE}} dependencies"
+            - conan install . -sbuild_type={{.BUILD_TYPE}} --build=missing
+
+    conan:deploy:
+        desc: Deploy the DirectMQ C++ SDK dependencies
+        silent: true
+        internal: true
+        cmds:
+            - echo "Deploying C++ SDK dependencies"
+            - conan install . -sbuild_type=Debug --deployer=direct_deploy --deployer-folder=build/_deps
+
+    cmake:generate:
+        desc: Generate cmake build configuration
+        internal: true
+        silent: true
+        cmds:
+            - echo "Generating cmake configuration for {{.BUILD_TYPE | lower}} build"
+            - cmake --preset conan-{{.BUILD_TYPE | lower}} -B build/{{.BUILD_TYPE}} -S . -DDMQ_BUILD_TESTS={{.DMQ_BUILD_TESTS}} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFETCHCONTENT_BASE_DIR=./build/_deps
 
     install:
         desc: Install the DirectMQ C++ SDK dependencies
         silent: true
         cmds:
-            - echo "Installing C++ SDK dependencies"
-            - conan install . -sbuild_type=Debug -of=conan/debug --build=missing
-
-    generate:
-        desc: Generate cmake build configuration
-        internal: true
-        silent: true
-        cmds:
-            - echo "Generating cmake configuration for {{.BUILD_DIRECTORY}}"
-            - cmake -B {{.BUILD_DIRECTORY}} -S . -DCMAKE_BUILD_TYPE={{.CMAKE_BUILD_TYPE}} -DDMQ_BUILD_TESTS={{.DMQ_BUILD_TESTS}} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFETCHCONTENT_BASE_DIR=./build/_deps
-
-    build:
-        desc: Build the DirectMQ C++ SDK in debug mode
-        silent: true
-        cmds:
-            - echo "Building DirectMQ C++ SDK in debug mode"
-
-            - task: generate
+            - task: conan:install
               vars:
-                  BUILD_DIRECTORY: build/debug
-                  CMAKE_BUILD_TYPE: Debug
+                BUILD_TYPE: Debug
+
+            - task: cmake:generate
+              vars:
+                  BUILD_TYPE: Debug
                   DMQ_BUILD_TESTS: ON
 
-            - echo "Building sdk"
-            - cmake --build build/debug
+            - task: conan:install
+              vars:
+                BUILD_TYPE: Release
 
-    release:
+            - task: cmake:generate
+              vars:
+                  BUILD_TYPE: Release
+                  DMQ_BUILD_TESTS: OFF
+
+            - task: conan:deploy
+
+    build:debug:
+        desc: Build the DirectMQ C++ SDK in debug mode
+        silent: true
+        aliases:
+            - build
+        cmds:
+            - echo "Building DirectMQ C++ SDK in debug mode"
+            - cmake --build --preset conan-debug
+
+    build:release:
         desc: Build the DirectMQ C++ SDK in release mode
         silent: true
         cmds:
             - echo "Building DirectMQ C++ SDK in release mode"
-
-            - task: generate
-              vars:
-                  BUILD_DIRECTORY: build/release
-                  CMAKE_BUILD_TYPE: Release
-                  DMQ_BUILD_TESTS: OFF
-
-            - echo "Building sdk"
-            - cmake --build build/release
+            - cmake --build --preset conan-release
 
     format:
         desc: Format the DirectMQ C++ SDK source code
@@ -78,21 +99,14 @@ tasks:
         silent: true
         cmds:
             - echo "Analyzing C++ SDK source code"
-
-            - task: generate
-              vars:
-                  BUILD_DIRECTORY: build/debug
-                  CMAKE_BUILD_TYPE: Debug
-                  DMQ_BUILD_TESTS: OFF
-
-            - find include src test -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | xargs clang-tidy -p build/debug
+            - find include src test -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | xargs clang-tidy -p build/Debug
 
     test:
         desc: Run the DirectMQ C++ SDK tests
         silent: true
         cmds:
             - echo "Running C++ SDK tests"
-            - ctest --test-dir build/debug --output-on-failure
+            - ctest --test-dir build/Debug --output-on-failure
 
     dev:
         desc: Compile and run the DirectMQ C++ SDK tests
@@ -107,7 +121,5 @@ tasks:
         cmds:
             - clear
             - task: format
-            # - task: analyze - TODO: Fix the clang-tidy warnings
-            - task: clean
             - task: build
             - task: test

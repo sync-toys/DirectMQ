@@ -2,16 +2,10 @@ cmake_minimum_required(VERSION 3.26)
 
 project(directmq-sdk-test LANGUAGES CXX)
 
-include(FetchContent)
 include(CTest)
+include(Catch)
 
-FetchContent_Declare(
-  catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v2.13.7  # Replace with the desired version
-)
-FetchContent_MakeAvailable(catch2)
-include(${catch2_SOURCE_DIR}/contrib/Catch.cmake)
+find_package(Catch2 REQUIRED)
 
 add_executable(directmq-sdk-test
   main.cpp
