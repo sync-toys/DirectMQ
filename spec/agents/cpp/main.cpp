@@ -1,15 +1,12 @@
+#include <atomic>
 #include <chrono>
+#include <directmq.hpp>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <thread>
-#include <mutex>
-#include <atomic>
-
-#include <directmq.hpp>
-#include <portals/websocket/client.hpp>
-#include <portals/websocket/server.hpp>
 
 #include "commands.hpp"
 #include "notifications.hpp"
@@ -32,7 +29,6 @@ const int NO_EXIT = -1;
 std::atomic<int> exitFlag(NO_EXIT);
 
 directmq::DirectMQNode *node;
-std::shared_ptr<directmq::portal::websocket::Runnable> runnablePortalHost;
 
 void log(const std::string &message) {
     std::cout << message << std::endl;
@@ -128,33 +124,11 @@ void handleSetupCommand(SetupCommand command) {
 void handleListenCommand(ListenCommand command) {
     log("Listening as server at " + command.address + ":" +
         std::to_string(command.port));
-
-    auto result = directmq::portal::websocket::WebsocketServer::create(
-        command.address.c_str(), command.port,
-        directmq::portal::websocket::WsDataFormat::BINARY, node);
-
-    if (result.error) {
-        fatal("Failed to listen as server: " + std::string(result.error));
-    }
-
-    runnablePortalHost.reset();
-    runnablePortalHost = result.instance;
 }
 
 void handleConnectCommand(ConnectCommand command) {
     log("Connecting as client to " + command.address + ":" +
         std::to_string(command.port));
-
-    auto result = directmq::portal::websocket::WebsocketClient::connect(
-        command.address.c_str(), command.port, "/",
-        directmq::portal::websocket::WsDataFormat::BINARY, node);
-
-    if (result.error) {
-        fatal("Failed to connect as client: " + std::string(result.error));
-    }
-
-    runnablePortalHost.reset();
-    runnablePortalHost = result.client;
 }
 
 void handleStopCommand(StopCommand command) {
@@ -237,7 +211,7 @@ std::string readCommandFromStdin() {
 }
 
 void runCommandLoop() {
-    while(exitFlag == NO_EXIT) {
+    while (exitFlag == NO_EXIT) {
         try {
             std::string rawCommand = readCommandFromStdin();
             if (rawCommand.empty()) {
@@ -253,16 +227,9 @@ void runCommandLoop() {
 }
 
 void runNodeLoop() {
-    while(exitFlag == NO_EXIT) {
+    while (exitFlag == NO_EXIT) {
         try {
             std::lock_guard<std::mutex> lock(nodeMutex);
-
-            if (!node || !runnablePortalHost) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                return;
-            }
-
-            runnablePortalHost->run(100);
         } catch (const std::exception &e) {
             fatal("Node loop fatal failure: " + std::string(e.what()));
         }

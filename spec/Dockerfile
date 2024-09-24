@@ -14,7 +14,10 @@ RUN apt-get update && apt-get install -y \
     gdbserver \
     catch2 \
     protobuf-compiler \
-    libwebsockets-dev
+    python3 \
+    python3-setuptools \
+    python3-pip
+
 
 RUN apt-get remove -y cmake && \
     wget https://github.com/Kitware/CMake/releases/download/v3.26.0/cmake-3.26.0-linux-x86_64.sh && \
@@ -22,7 +25,12 @@ RUN apt-get remove -y cmake && \
     ./cmake-3.26.0-linux-x86_64.sh --prefix=/usr/local --skip-license && \
     rm cmake-3.26.0-linux-x86_64.sh
 
+RUN pip3 install conan --break-system-packages
+RUN conan profile detect
+
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+RUN mv ./bin/task /usr/local/bin/task
+
 RUN go install github.com/onsi/ginkgo/v2/ginkgo@latest
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 

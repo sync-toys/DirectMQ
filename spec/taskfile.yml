@@ -37,12 +37,12 @@ tasks:
             - echo Running specification tests...
             - |
                 docker run \
-                --volume "$(pwd):/directmq" \
-                -t --name DirectMQ.Spec \
-                --network=bridge \
-                {{range .FORWARD_PORTS}} -p {{ . }}:{{ . }} {{end}} \
-                directmq/spec-runner \
-                {{.COMMAND}}
+                    --volume "$(pwd):/directmq" \
+                    -t --name DirectMQ.Spec \
+                    --network=bridge \
+                    {{range .FORWARD_PORTS}} -p {{ . }}:{{ . }} {{end}} \
+                    directmq/spec-runner \
+                    {{.COMMAND}}
 
             - echo Specification tests done
 

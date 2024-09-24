@@ -7,6 +7,13 @@ tasks:
         cmds:
             - task --list-all
 
+    install:
+        desc: Install the DirectMQ Go SDK testing agent dependencies
+        silent: true
+        cmds:
+            - echo "Installing DirectMQ Go SDK testing agent dependencies"
+            - go mod download
+
     clean:
         desc: Clean the DirectMQ Go SDK testing agent build directory
         silent: true
