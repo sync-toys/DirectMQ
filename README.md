@@ -2,6 +2,7 @@
 
 - [What is DirectMQ?](#what-is-directmq)
 - [Why DirectMQ?](#why-directmq)
+- [When Not to Use DirectMQ](#when-not-to-use-directmq)
 - [Key features](#key-features)
   * [1. Customizable Transport Layer](#1-customizable-transport-layer)
   * [2. Topic-Based Messaging](#2-topic-based-messaging)
@@ -50,6 +51,24 @@ DirectMQ offers the flexibility to implement custom transport mechanisms, such a
 The need for a highly flexible P2P messaging system arose from the limitations of existing solutions like **nng** and **ZeroMQ**, which are often too network-dependent and not suited for low-resource or embedded platforms. These technologies do not support custom transport methods such as **Bluetooth** or **Serial** communication, which are essential for connecting smartphones to embedded devices.
 
 With DirectMQ, you can define your own transport layer, giving you full control over how devices communicate. This makes it perfect for projects where traditional networking solutions are too restrictive or complex to implement.
+
+## When Not to Use DirectMQ
+
+DirectMQ is optimized for direct communication, especially between mobile applications and embedded/IoT devices, as well as between multiple embedded devices. However, there are situations where it is better to use other, proven communication protocols. Here are a few:
+
+- **Complex System Architectures**: If your application requires a complex architecture with distributed components or needs advanced message management features, it is advisable to choose protocols like **MQTT**, **nng**, or **ZeroMQ**, which offer richer capabilities and have been well-tested in various conditions
+
+- **High Reliability and Delivery Guarantees**: In scenarios where reliable message delivery and strict management are critical (e.g., in mission-critical applications), it is recommended to use protocols designed with these requirements in mind.
+
+- **Scalability**: If you plan to scale your system to work with hundreds or thousands of devices, protocols like MQTT can provide better scalability and session management. This project is not meant to handle more than tens of devices connected in direct network.
+
+- **Support for Industry Standards**: In projects that must meet specific industry standards, utilizing popular protocols with wide community support may be more appropriate.
+
+- **Backend-to-Backend and Mobile-to-Mobile Communication**: DirectMQ is not recommended for backend-to-backend or mobile-to-mobile communication due to better alternatives available. Established protocols like **zeromq** are more suitable for these scenarios, providing robust features and better performance.
+
+If you feel that MQTT might be a better choice but still want to use DirectMQ, it’s advisable to reconsider your architecture.
+
+It is important to note that DirectMQ should not replace protocols like MQTT and _should only be used in contexts where it makes practical sense_. While DirectMQ is ideal for simple and direct connections, it is worth considering proven and established communication protocols in more complex scenarios.
 
 ## Key features
 
