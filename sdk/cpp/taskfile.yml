@@ -26,7 +26,8 @@ tasks:
     conan:install:
         desc: Install the DirectMQ C++ SDK dependencies
         silent: true
-        internal: true
+        requires:
+            vars: [BUILD_TYPE]
         cmds:
             - echo "Installing C++ SDK {{.BUILD_TYPE}} dependencies"
             - conan install . -sbuild_type={{.BUILD_TYPE}} --build=missing
@@ -43,6 +44,8 @@ tasks:
         desc: Generate cmake build configuration
         internal: true
         silent: true
+        requires:
+            vars: [BUILD_TYPE, DMQ_BUILD_TESTS]
         cmds:
             - echo "Generating cmake configuration for {{.BUILD_TYPE | lower}} build"
             - cmake --preset conan-{{.BUILD_TYPE | lower}} -B build/{{.BUILD_TYPE}} -S . -DDMQ_BUILD_TESTS={{.DMQ_BUILD_TESTS}} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFETCHCONTENT_BASE_DIR=./build/_deps
