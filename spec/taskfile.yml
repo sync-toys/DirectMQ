@@ -38,6 +38,8 @@ tasks:
             - |
                 docker run \
                     --volume "$(pwd):/directmq" \
+                    --volume /directmq/sdk/cpp/build \
+                    --volume /directmq/spec/agents/cpp/build \
                     -t --name DirectMQ.Spec \
                     --network=bridge \
                     {{range .FORWARD_PORTS}} -p {{ . }}:{{ . }} {{end}} \
