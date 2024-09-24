@@ -46,4 +46,28 @@ WORKDIR /directmq/spec/agents/go
 COPY spec/agents/go/go.mod spec/agents/go/go.sum ./
 RUN go mod download
 
+# Heavy C++ dependencies fetch and pre-build runs first
+WORKDIR /directmq/spec/agents/cpp
+COPY spec/agents/cpp/conanfile.py spec/agents/cpp/taskfile.yml ./
+RUN task conan:install
+
+WORKDIR /directmq/sdk/cpp
+COPY sdk/cpp/conanfile.py sdk/cpp/taskfile.yml ./
+RUN task conan:install BUILD_TYPE=Debug
+RUN task conan:install BUILD_TYPE=Release
+
+# Now we are installing the cmake dependencies, but those require access to source
+# code, so we are executing it at the end as it is the most likely to change.
+# CMake will fetch its dependencies at this stage.
+WORKDIR /directmq/sdk/cpp
+COPY sdk/cpp/CMakeLists.txt sdk/cpp/CMakeUserPresets.json ./
+COPY sdk/cpp/include/ ./include
+COPY sdk/cpp/src/ ./src
+COPY sdk/cpp/lib/ ./lib
+RUN task cmake:generate BUILD_TYPE=Debug DMQ_BUILD_TESTS=OFF
+
+WORKDIR /directmq/spec/agents/cpp
+COPY spec/agents/cpp/*.hpp spec/agents/cpp/*.cpp spec/agents/cpp/CMakeLists.txt spec/agents/cpp/CMakeUserPresets.json ./
+RUN task cmake:generate
+
 WORKDIR /directmq/spec

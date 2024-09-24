@@ -14,13 +14,26 @@ tasks:
             - echo "Cleaning DirectMQ C++ SDK test agent build directory"
             - rm -rf build
 
+    conan:install:
+        desc: Install the DirectMQ C++ SDK test agent conan dependencies
+        silent: true
+        cmds:
+            - echo "Installing DirectMQ C++ SDK test agent conan dependencies"
+            - conan install . -sbuild_type=Debug --build=missing --deployer=direct_deploy --deployer-folder=build/_deps
+
+    cmake:generate:
+        desc: Generate the DirectMQ C++ SDK test agent CMake build system
+        silent: true
+        cmds:
+            - echo "Generating DirectMQ C++ SDK test agent CMake build system"
+            - cmake --preset conan-debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFETCHCONTENT_BASE_DIR=./build/_deps -B build/Debug -S .
+
     install:
         desc: Install the DirectMQ C++ SDK test agent dependencies
         silent: true
         cmds:
-            - echo "Installing DirectMQ C++ SDK test agent dependencies"
-            - conan install . -sbuild_type=Debug --build=missing --deployer=direct_deploy --deployer-folder=build/_deps
-            - cmake --preset conan-debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFETCHCONTENT_BASE_DIR=./build/_deps -B build/Debug -S .
+            - task: conan:install
+            - task: cmake:generate
 
     build:
         desc: Build the DirectMQ C++ SDK test agent

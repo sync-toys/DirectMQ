@@ -42,7 +42,6 @@ tasks:
 
     cmake:generate:
         desc: Generate cmake build configuration
-        internal: true
         silent: true
         requires:
             vars: [BUILD_TYPE, DMQ_BUILD_TESTS]
