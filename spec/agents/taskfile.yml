@@ -2,9 +2,11 @@ version: 3
 
 includes:
     cpp:
+        internal: true
         taskfile: ./cpp
         dir: ./cpp
     go:
+        internal: true
         taskfile: ./go
         dir: ./go
 

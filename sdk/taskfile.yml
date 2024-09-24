@@ -2,9 +2,11 @@ version: 3
 
 includes:
     cpp:
+        internal: true
         taskfile: ./cpp/taskfile.yml
         dir: ./cpp
     go:
+        internal: true
         taskfile: ./go/taskfile.yml
         dir: ./go
 
@@ -21,6 +23,13 @@ tasks:
         cmds:
             - task: cpp:clean
             - task: go:clean
+
+    install:
+        desc: Install the DirectMQ SDKs dependencies
+        silent: true
+        cmds:
+            - task: cpp:install
+            - task: go:install
 
     build:
         desc: Build the DirectMQ SDKs

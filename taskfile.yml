@@ -17,3 +17,32 @@ tasks:
         silent: true
         cmds:
             - task --list-all
+
+    prepare:
+        desc: Prepare the DirectMQ project
+        silent: true
+        cmds:
+            - task: proto:build-image
+            - task: spec:build-image
+
+            - task: sdk:install
+            - task: spec:agents:install
+
+            - task: sdk:build
+            - task: spec:agents:build
+
+    clean:
+        desc: Clean the DirectMQ SDKs build artifacts
+        silent: true
+        cmds:
+            - task: sdk:clean
+            - task: spec:agents:clean
+
+    test:
+        desc: Run DirectMQ SDKs unit and e2e tests
+        silent: true
+        cmds:
+            - task: sdk:install
+            - task: sdk:build
+            - task: sdk:test
+            - task: spec:test

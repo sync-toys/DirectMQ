@@ -14,6 +14,13 @@ tasks:
             - echo "Cleaning Go SDK build directory"
             - rm -rf bin
 
+    install:
+        desc: Install the DirectMQ Go SDK dependencies
+        silent: true
+        cmds:
+            - echo "Installing Go SDK dependencies"
+            - go mod download
+
     test:
         desc: Run DirectMQ Go SDK tests
         silent: true
