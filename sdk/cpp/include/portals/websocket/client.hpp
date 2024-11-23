@@ -17,6 +17,7 @@ using websocketpp::lib::placeholders::_2;
 
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
+namespace internals {
 class WebsocketppWriter : public portal::DataWriter {
    private:
     websocketpp::connection_hdl hdl;
@@ -55,6 +56,7 @@ class WebsocketppWriter : public portal::DataWriter {
         delete[] message;
     }
 };
+}  // namespace internals
 
 template <typename T>
 struct WebsocketCreationResult {
@@ -101,7 +103,8 @@ class WebsocketClient : public portal::Portal {
     ~WebsocketClient() { close(); }
 
     std::shared_ptr<DataWriter> beginWrite(const size_t packetSize) override {
-        return std::make_shared<WebsocketppWriter>(hdl, &endpoint, packetSize);
+        return std::make_shared<internals::WebsocketppWriter>(hdl, &endpoint,
+                                                              packetSize);
     }
 
     void close() override {

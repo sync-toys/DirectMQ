@@ -18,6 +18,7 @@ using websocketpp::lib::placeholders::_2;
 
 typedef websocketpp::config::asio::message_type::ptr message_ptr;
 
+namespace internals {
 class WebsocketppWriter : public portal::DataWriter {
    private:
     websocketpp::connection_hdl hdl;
@@ -90,17 +91,18 @@ class WebsocketConnection : public portal::Portal {
         srv->close(hdl, websocketpp::close::status::going_away, "");
     }
 };
+}  // namespace internals
 
 class WebsocketServer {
    private:
     server srv;
     network::EdgeManager* edgeManager;
 
-    std::vector<std::shared_ptr<WebsocketConnection>> connections;
+    std::vector<std::shared_ptr<internals::WebsocketConnection>> connections;
 
     void onOpen(websocketpp::connection_hdl hdl) {
-        std::shared_ptr<WebsocketConnection> connection =
-            std::make_shared<WebsocketConnection>(hdl, &srv);
+        std::shared_ptr<internals::WebsocketConnection> connection =
+            std::make_shared<internals::WebsocketConnection>(hdl, &srv);
 
         // TODO: fix another memory leak there, connection is included in edge
         // and edge is included in connection (use weak_ptr)
@@ -111,11 +113,11 @@ class WebsocketServer {
     }
 
     void onMessage(websocketpp::connection_hdl hdl, message_ptr msg) {
-        auto connection =
-            std::find_if(connections.begin(), connections.end(),
-                         [&](std::shared_ptr<WebsocketConnection> connection) {
-                             return connection->getHdl().lock() == hdl.lock();
-                         });
+        auto connection = std::find_if(
+            connections.begin(), connections.end(),
+            [&](std::shared_ptr<internals::WebsocketConnection> connection) {
+                return connection->getHdl().lock() == hdl.lock();
+            });
 
         if (connection != connections.end()) {
             (*connection)->onMessage(hdl, msg);
@@ -123,11 +125,11 @@ class WebsocketServer {
     }
 
     void onClose(websocketpp::connection_hdl hdl) {
-        auto connection =
-            std::find_if(connections.begin(), connections.end(),
-                         [&](std::shared_ptr<WebsocketConnection> connection) {
-                             return connection->getHdl().lock() == hdl.lock();
-                         });
+        auto connection = std::find_if(
+            connections.begin(), connections.end(),
+            [&](std::shared_ptr<internals::WebsocketConnection> connection) {
+                return connection->getHdl().lock() == hdl.lock();
+            });
 
         if (connection != connections.end()) {
             edgeManager->removeEdge(*connection, "websocket connection closed");
