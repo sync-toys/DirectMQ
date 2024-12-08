@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * DISCLAIMER: this C++ SDK Websocket portal is not working at the moment.
+ *
+ * This is work in progress implementation, TBD.
+ */
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -148,7 +154,7 @@ class WebsocketServer {
             bind(&WebsocketServer::onMessage, this, _1, _2));
         srv.init_asio();
         srv.listen(port);
-        srv.start_accept();
+        srv.start_perpetual();
         srv.run();
     }
 };

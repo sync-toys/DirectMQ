@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * DISCLAIMER: this C++ SDK Websocket portal is not working at the moment.
+ *
+ * This is work in progress implementation, TBD.
+ */
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -117,6 +123,7 @@ class WebsocketClient : public portal::Portal {
             std::make_shared<WebsocketClient>(edgeManager);
 
         client->endpoint.init_asio();
+        client->endpoint.start_perpetual();
 
         client->endpoint.set_open_handler(
             bind(&WebsocketClient::onOpen, client.get(), client, _1));
