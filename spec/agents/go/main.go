@@ -93,12 +93,10 @@ func handleListenCommand(cmd dmqspecagent.ListenCommand) {
 		fatal("Failed to parse URL: " + err.Error())
 	}
 
-	ctx = context.Background()
-
 	go func() {
-		err = dmqportals.WebsocketListen(u, dmqportals.BinaryMessages, node, ctx)
+		err = dmqportals.TcpListen(u, node, context.Background())
 		if err != nil {
-			fatal("Failed to listen on websocket: " + err.Error())
+			fatal("Failed to listen on TCP socket: " + err.Error())
 		}
 	}()
 }
@@ -111,17 +109,17 @@ func handleConnectCommand(cmd dmqspecagent.ConnectCommand) {
 		fatal("Failed to parse URL: " + err.Error())
 	}
 
-	log("Connecting websocket")
-	wsPortal, err := dmqportals.WebsocketConnect(u, dmqportals.BinaryMessages)
+	log("Connecting TCP portal")
+	wsPortal, err := dmqportals.TcpConnect(u, context.Background())
 	if err != nil {
-		fatal("Failed to connect to websocket: " + err.Error())
+		fatal("Failed to connect to TCP socket: " + err.Error())
 	}
 
 	log("Starting connection protocol")
 	go func() {
 		log("Starting connection protocol")
 		if err := node.AddConnectingEdge(wsPortal); !dmqportals.IsNetworkConnectionClosedError(err) {
-			fatal("Websocket connection failure: " + err.Error())
+			fatal("TCP connection failure: " + err.Error())
 		}
 	}()
 }

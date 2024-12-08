@@ -1,3 +1,5 @@
+github.com/Lobaro/slip v0.0.0-20170904164317-88dcb78414ea h1:lpHJkBxATbHlFRPGlD7/gU1LTyMNMkhpYKxCUT7Ynx0=
+github.com/Lobaro/slip v0.0.0-20170904164317-88dcb78414ea/go.mod h1:r5Qh0dZbKfQ+1KRK78WRCeStYKOIGr/cF/QrkjtH88s=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=
 github.com/go-logr/logr v1.4.2/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-task/slim-sprig/v3 v3.0.0 h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1vB6EwHI=

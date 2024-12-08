@@ -41,13 +41,13 @@ func NewNodesCommunicationSpy(a dmqspecagent.Agent, b dmqspecagent.Agent, config
 	}
 
 	fromURL := &url.URL{
-		Scheme: "ws",
+		Scheme: "tcp",
 		Host:   "localhost:" + strconv.Itoa(getFreeTestingPort()),
 		Path:   "/",
 	}
 
 	toURL := &url.URL{
-		Scheme: "ws",
+		Scheme: "tcp",
 		Host:   "localhost:" + strconv.Itoa(forwardToPort),
 		Path:   "/",
 	}
@@ -62,7 +62,7 @@ func NewNodesCommunicationSpy(a dmqspecagent.Agent, b dmqspecagent.Agent, config
 		ToURL:   toURL,
 	}
 
-	spy.forwarder = dmqspecagent.NewWebsocketForwarder(fromURL, spy.bAgent.GetNodeID(), toURL, spy.aAgent.GetNodeID())
+	spy.forwarder = dmqspecagent.NewTcpForwarder(fromURL, spy.bAgent.GetNodeID(), toURL, spy.aAgent.GetNodeID())
 	spy.recorder = dmqspecagent.NewRecorder(spy.config.RecordingsComparator)
 
 	spy.forwarder.OnMessage(spy.handleMessage)
@@ -83,7 +83,7 @@ func (spy *NodesCommunicationSpy) handleMessage(message dmqspecagent.ForwardedMe
 }
 
 func (spy *NodesCommunicationSpy) Start() {
-	spy.forwarder.StartWebsocketForwarder()
+	spy.forwarder.StartForwarder()
 }
 
 func (spy *NodesCommunicationSpy) Stop() {
