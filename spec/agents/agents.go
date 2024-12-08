@@ -42,7 +42,7 @@ func GolangAgent(nodeID string, debugPort int) dmqspecagent.UniversalSpawn {
 }
 
 func CppAgent(nodeID string, debugPort int) dmqspecagent.UniversalSpawn {
-	executablePath := "/directmq/spec/agents/cpp/build/directmq-sdk-agent"
+	executablePath := "/directmq/spec/agents/cpp/build/Debug/directmq-sdk-agent"
 
 	if debugPort == NO_DEBUGGING {
 		return dmqspecagent.UniversalSpawn{
