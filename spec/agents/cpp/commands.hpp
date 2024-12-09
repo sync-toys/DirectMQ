@@ -18,12 +18,10 @@ struct SetupCommand {
 
 struct ListenCommand {
     std::string address;
-    uint16_t port;
 };
 
 struct ConnectCommand {
     std::string address;
-    uint16_t port;
 };
 
 struct StopCommand {
@@ -78,13 +76,11 @@ struct UniversalCommand {
         if (c.contains("listen")) {
             r.listen = new ListenCommand();
             r.listen->address = c["listen"]["address"];
-            r.listen->port = c["listen"]["port"];
         }
 
         if (c.contains("connect")) {
             r.connect = new ConnectCommand();
             r.connect->address = c["connect"]["address"];
-            r.connect->port = c["connect"]["port"];
         }
 
         if (c.contains("stop")) {
