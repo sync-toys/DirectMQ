@@ -12,11 +12,13 @@ target_compile_definitions(protobuf-nanopb-static PUBLIC PB_ENABLE_MALLOC=1)
 target_include_directories(directmq-sdk PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-find_package(websocketpp REQUIRED)
+find_package(Boost REQUIRED)
 target_link_libraries(directmq-sdk PRIVATE
     protobuf-nanopb-static
     dmq_proto_embedded
-    websocketpp::websocketpp)
+    boost::boost
+    tinyhal
+    tinyslip)
 
 option(DMQ_BUILD_TESTS "Enable DirectMQ C++ SDK testing" OFF)
 
