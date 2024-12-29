@@ -1,6 +1,6 @@
 {
     "name": "DirectMQ",
-    "dockerFile": "../Dockerfile",
+    "dockerFile": "./Dockerfile",
     "workspaceFolder": "/workspace",
 
     "userEnvProbe": "loginShell",
@@ -24,7 +24,10 @@
                 "golang.go",
 
                 // c++ language support
-                "ms-vscode.cpptools-extension-pack",
+                "llvm-vs-code-extensions.vscode-clangd",
+
+                // c++ debugging support
+                "webfreak.debug",
 
                 // docker support
                 "ms-azuretools.vscode-docker",
