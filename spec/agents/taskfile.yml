@@ -21,19 +21,19 @@ tasks:
         desc: Install the DirectMQ SDK testing agents dependencies
         silent: true
         cmds:
-            - task: cpp:install
+            # - task: cpp:install
             - task: go:install
 
     clean:
         desc: Clean the DirectMQ SDK testing agents build directories
         silent: true
         cmds:
-            - task: cpp:clean
+            # - task: cpp:clean
             - task: go:clean
 
     build:
         desc: Build the DirectMQ SDK testing agents
         silent: true
         cmds:
-            - task: cpp:build
+            # - task: cpp:build
             - task: go:build
