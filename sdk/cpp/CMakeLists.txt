@@ -16,9 +16,7 @@ find_package(Boost REQUIRED)
 target_link_libraries(directmq-sdk PRIVATE
     protobuf-nanopb-static
     dmq_proto_embedded
-    boost::boost
-    tinyhal
-    tinyslip)
+    Boost::system)
 
 option(DMQ_BUILD_TESTS "Enable DirectMQ C++ SDK testing" OFF)
 
