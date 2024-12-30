@@ -4,8 +4,8 @@ import (
 	"net"
 	"net/url"
 	"sync"
+	"time"
 
-	"github.com/Lobaro/slip"
 	dmqportals "github.com/sync-toys/DirectMQ/sdk/go/portals"
 )
 
@@ -68,9 +68,15 @@ func NewTcpForwarder(from *url.URL, fromAlias string, to *url.URL, toAlias strin
 func (f *tcpForwarder) StartForwarder() error {
 	listener, err := net.Listen("tcp", f.fromURL.Host)
 	if err != nil {
+		listener.Close()
 		return err
 	}
 
+	go f.acceptConnection(listener)
+	return nil
+}
+
+func (f *tcpForwarder) acceptConnection(listener net.Listener) error {
 	defer listener.Close()
 
 	conn, err := listener.Accept()
@@ -117,11 +123,8 @@ func (f *tcpForwarder) runForwardingRoutine(
 ) {
 	defer func() { done <- struct{}{} }()
 
-	reader := slip.NewReader(from)
-	writer := slip.NewWriter(to)
-
 	for {
-		data, err := dmqportals.ReadFullSlipPacket(reader)
+		data, err := dmqportals.ReadFullPacket(from)
 		if err != nil {
 			return
 		}
@@ -140,7 +143,7 @@ func (f *tcpForwarder) runForwardingRoutine(
 			f.messageHandler(message)
 		}
 
-		if err := writer.WritePacket(data); err != nil {
+		if err := dmqportals.WriteFullPacket(to, data); err != nil {
 			return
 		}
 	}

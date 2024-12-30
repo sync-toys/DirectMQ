@@ -2,19 +2,17 @@ package dmqportals
 
 import (
 	"context"
+	"encoding/binary"
+	"io"
 	"net"
 	"net/url"
 
-	"github.com/Lobaro/slip"
 	directmq "github.com/sync-toys/DirectMQ/sdk/go"
 )
 
 type TcpPortal struct {
 	conn   net.Conn
 	closed bool
-
-	reader *slip.Reader
-	writer *slip.Writer
 }
 
 var _ directmq.Portal = (*TcpPortal)(nil)
@@ -23,8 +21,6 @@ func newTcpPortal(conn net.Conn) TcpPortal {
 	return TcpPortal{
 		conn:   conn,
 		closed: false,
-		reader: slip.NewReader(conn),
-		writer: slip.NewWriter(conn),
 	}
 }
 
@@ -37,29 +33,47 @@ func (p *TcpPortal) Close() error {
 	return p.conn.Close()
 }
 
-func ReadFullSlipPacket(reader *slip.Reader) ([]byte, error) {
-	isLastFrame := false
-	fullPacket := []byte{}
-
-	for !isLastFrame {
-		bytes, isPrefix, err := reader.ReadPacket()
-		if err != nil {
-			return nil, err
-		}
-
-		isLastFrame = !isPrefix
-		fullPacket = append(fullPacket, bytes...)
+func ReadFullPacket(conn net.Conn) ([]byte, error) {
+	header := make([]byte, 4)
+	_, err := io.ReadFull(conn, header)
+	if err != nil {
+		return nil, err
 	}
 
-	return fullPacket, nil
+	messageSize := binary.BigEndian.Uint32(header)
+
+	message := make([]byte, messageSize)
+	_, err = io.ReadFull(conn, message)
+	if err != nil {
+		return nil, err
+	}
+
+	return message, nil
+}
+
+func WriteFullPacket(conn net.Conn, packet []byte) error {
+	header := make([]byte, 4)
+	binary.BigEndian.PutUint32(header, uint32(len(packet)))
+
+	_, err := conn.Write(header)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Write(packet)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *TcpPortal) ReadPacket() ([]byte, error) {
-	return ReadFullSlipPacket(p.reader)
+	return ReadFullPacket(p.conn)
 }
 
 func (p *TcpPortal) WritePacket(packet []byte) error {
-	if err := p.writer.WritePacket(packet); err != nil {
+	if err := WriteFullPacket(p.conn, packet); err != nil {
 		p.closed = true
 		return err
 	}
@@ -101,6 +115,6 @@ func TcpListen(u *url.URL, dmq directmq.NetworkNode, ctx context.Context) error 
 		}
 
 		portal := newTcpPortal(conn)
-		dmq.AddListeningEdge(&portal)
+		go dmq.AddListeningEdge(&portal)
 	}
 }
