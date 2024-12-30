@@ -89,7 +89,10 @@ func (f *tcpForwarder) acceptConnection(listener net.Listener) error {
 }
 
 func (f *tcpForwarder) startTcpBridge() error {
-	outgoing, err := net.Dial("tcp", f.toURL.Host)
+	outgoing, err := retryErr(15, 100*time.Millisecond, func() (net.Conn, error) {
+		return net.Dial("tcp", f.toURL.Host)
+	})
+
 	if err != nil {
 		f.incomingConn.Close()
 		return err
