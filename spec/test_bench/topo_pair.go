@@ -100,7 +100,7 @@ func (t *PairTopoTestBench) Start() {
 	t.configure()
 
 	t.benchLog("starting spy")
-	go t.masterSalveSpy.Start()
+	t.masterSalveSpy.Start()
 
 	t.benchLog("spawning master")
 	t.Master.Run(t.config.MasterSpawn, dmqspecagent.SetupCommand{

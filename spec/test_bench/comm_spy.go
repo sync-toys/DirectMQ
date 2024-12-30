@@ -82,8 +82,8 @@ func (spy *NodesCommunicationSpy) handleMessage(message dmqspecagent.ForwardedMe
 	}
 }
 
-func (spy *NodesCommunicationSpy) Start() {
-	spy.forwarder.StartForwarder()
+func (spy *NodesCommunicationSpy) Start() error {
+	return spy.forwarder.StartForwarder()
 }
 
 func (spy *NodesCommunicationSpy) Stop() {
