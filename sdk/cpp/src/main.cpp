@@ -1,3 +1,3 @@
 #include "directmq.hpp"
-#include "portals/websocket/client.hpp"
-#include "portals/websocket/server.hpp"
+#include "portals/streams/tcp_portal_client.hpp"
+#include "portals/streams/tcp_portal_server.hpp"
