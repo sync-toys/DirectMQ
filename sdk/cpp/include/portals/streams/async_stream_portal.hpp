@@ -89,7 +89,7 @@ class AsyncStreamPortal
                 "cannot write to portal, portal is closed");
         }
 
-        return AsyncDataWriter::Pointer(
+        return typename AsyncDataWriter::Pointer(
             new AsyncDataWriter(messageSize, frameWriter_));
     }
 

@@ -127,8 +127,13 @@ class TcpPortalServer : public std::enable_shared_from_this<TcpPortalServer> {
     void handleConnectionError(Portal::Pointer portal,
                                const boost::system::error_code &error) {
         edgeManager_->removeEdge(portal, error.message());
-        portals_.erase(std::remove(portals_.begin(), portals_.end(), portal),
-                       portals_.end());
+
+        portals_.erase(
+            std::remove_if(portals_.begin(), portals_.end(),
+                           [portal](const TcpPortalServerConnection &connection) {
+                               return connection.portal == portal;
+                           }),
+            portals_.end());
     }
 
     void closeAllPortals() {
