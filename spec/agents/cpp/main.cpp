@@ -1,12 +1,14 @@
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <directmq.hpp>
 #include <iomanip>
 #include <iostream>
 #include <mutex>
+#include <portals/streams/tcp_portal_client.hpp>
+#include <portals/streams/tcp_portal_server.hpp>
 #include <sstream>
 #include <string>
-#include <thread>
 
 #include "commands.hpp"
 #include "notifications.hpp"
@@ -28,7 +30,9 @@ std::mutex exitMutex;
 const int NO_EXIT = -1;
 std::atomic<int> exitFlag(NO_EXIT);
 
-directmq::DirectMQNode *node;
+std::shared_ptr<directmq::DirectMQNode> node;
+directmq::portal::streams::TcpPortalClient::Pointer client = nullptr;
+directmq::portal::streams::TcpPortalServer::Pointer server = nullptr;
 
 void log(const std::string &message) {
     std::cout << message << std::endl;
@@ -114,21 +118,47 @@ void handleSetupCommand(SetupCommand command) {
         .hostMaxIncomingMessageSize = command.maxMessageSize,
         .hostID = command.nodeId};
 
-    node = new directmq::DirectMQNode(config);
+    node = std::shared_ptr<directmq::DirectMQNode>(
+        new directmq::DirectMQNode(config));
 
     registerDiagnosticsHandlers();
 
     log("Setup complete");
 }
 
+std::pair<std::string, uint_least16_t> splitAddress(
+    const std::string &address) {
+    std::size_t colonPos = address.find(':');
+    if (colonPos == std::string::npos) {
+        throw std::invalid_argument(
+            "Invalid address format. Expected format: host:port");
+    }
+
+    std::string host = address.substr(0, colonPos);
+    std::string rawPort = address.substr(colonPos + 1);
+
+    uint_least16_t port = std::stoi(rawPort);
+
+    return {host, port};
+}
+
 void handleListenCommand(ListenCommand command) {
-    log("Listening as server at " + command.address + ":" +
-        std::to_string(command.port));
+    log("Listening as server at " + command.address);
+
+    auto [host, port] = splitAddress(command.address);
+
+    server = directmq::portal::streams::TcpPortalServer::create(node, port, 0);
+
+    server->start();
 }
 
 void handleConnectCommand(ConnectCommand command) {
-    log("Connecting as client to " + command.address + ":" +
-        std::to_string(command.port));
+    log("Connecting as client to " + command.address);
+
+    auto [host, port] = splitAddress(command.address);
+
+    client =
+        directmq::portal::streams::TcpPortalClient::connect(node, host, port);
 }
 
 void handleStopCommand(StopCommand command) {
@@ -137,6 +167,14 @@ void handleStopCommand(StopCommand command) {
     node->closeNode(command.reason, [command]() {
         sendNotification(UniversalNotification::makeStopped(command.reason));
     });
+
+    if (server) {
+        server->stop();
+    }
+
+    if (client) {
+        client->close();
+    }
 
     log("Clean exit 0");
     exitAgent(0);
@@ -226,34 +264,27 @@ void runCommandLoop() {
     }
 }
 
-void runNodeLoop() {
-    while (exitFlag == NO_EXIT) {
-        try {
-            std::lock_guard<std::mutex> lock(nodeMutex);
-        } catch (const std::exception &e) {
-            fatal("Node loop fatal failure: " + std::string(e.what()));
-        }
-    }
-}
-
 int main() {
-    log("Starting DirectMQ testing agent");
+    try {
+        log("Starting DirectMQ testing agent");
 
-    // initialize exit mutex
-    exitMutex.lock();
+        // initialize exit mutex
+        exitMutex.lock();
 
-    log("Starting node loop");
-    std::thread nodeLoop(runNodeLoop);
+        log("Agent ready");
+        sendNotification(
+            UniversalNotification::makeReady(getCurrentTimeString()));
 
-    log("Starting command loop");
-    std::thread commandLoop(runCommandLoop);
+        log("Starting command loop");
+        runCommandLoop();
 
-    log("Agent ready");
-    sendNotification(UniversalNotification::makeReady(getCurrentTimeString()));
+        // exit mutex is unlocked when exitAgent is called
+        exitMutex.lock();
 
-    // exit mutex is unlocked when exitAgent is called
-    exitMutex.lock();
-
-    log("Exiting agent with code " + std::to_string(exitFlag));
-    return exitFlag;
+        log("Exiting agent with code " + std::to_string(exitFlag));
+        return exitFlag;
+    } catch (const std::exception &e) {
+        fatal("Fatal failure: " + std::string(e.what()));
+        return 1;
+    }
 }
