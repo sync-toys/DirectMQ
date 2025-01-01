@@ -126,16 +126,17 @@ void handleSetupCommand(SetupCommand command) {
     log("Setup complete");
 }
 
-std::pair<std::string, uint_least16_t> splitAddress(
+std::pair<std::string, uint_least16_t> parseAddress(
     const std::string &address) {
-    std::size_t colonPos = address.find(':');
+    std::size_t colonPos = address.rfind(':');
     if (colonPos == std::string::npos) {
         throw std::invalid_argument(
             "Invalid address format. Expected format: host:port");
     }
 
-    std::string host = address.substr(0, colonPos);
-    std::string rawPort = address.substr(colonPos + 1);
+    const std::string TCP_PROTOCOL = "tcp://";
+    std::string host = address.substr(TCP_PROTOCOL.length(), colonPos - TCP_PROTOCOL.length());
+    std::string rawPort = address.substr(colonPos + 1, address.length() - colonPos - 2);
 
     uint_least16_t port = std::stoi(rawPort);
 
@@ -145,7 +146,7 @@ std::pair<std::string, uint_least16_t> splitAddress(
 void handleListenCommand(ListenCommand command) {
     log("Listening as server at " + command.address);
 
-    auto [host, port] = splitAddress(command.address);
+    auto [host, port] = parseAddress(command.address);
 
     server = directmq::portal::streams::TcpPortalServer::create(node, port, 0);
 
@@ -155,7 +156,7 @@ void handleListenCommand(ListenCommand command) {
 void handleConnectCommand(ConnectCommand command) {
     log("Connecting as client to " + command.address);
 
-    auto [host, port] = splitAddress(command.address);
+    auto [host, port] = parseAddress(command.address);
 
     client =
         directmq::portal::streams::TcpPortalClient::connect(node, host, port);
