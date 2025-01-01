@@ -122,8 +122,10 @@ class TcpPortalClient : public std::enable_shared_from_this<TcpPortalClient>,
             return error;
         }
 
-        portal_->start();
         ioThread_ = std::thread([this]() { ioService_.run(); });
+
+        portal_->start();
+        this->networkEdge_ = edgeManager_->addConnectingEdge(shared_from_this());
         return boost::system::error_code();
     }
 
