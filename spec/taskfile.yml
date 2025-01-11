@@ -37,9 +37,9 @@ tasks:
             - echo Running specification tests...
             - |
                 docker run \
-                    --volume "$(pwd):/directmq" \
-                    --volume DMQ.Spec.BuildCache.CppSDK:/directmq/sdk/cpp/build \
-                    --volume DMQ.Spec.BuildCache.CppAgent:/directmq/spec/agents/cpp/build \
+                    --volume "$(pwd):/workspace" \
+                    --volume DMQ.Spec.BuildCache.CppSDK:/workspace/sdk/cpp/build \
+                    --volume DMQ.Spec.BuildCache.CppAgent:/workspace/spec/agents/cpp/build \
                     -t --name DirectMQ.Spec \
                     --network=bridge \
                     {{range .FORWARD_PORTS}} -p {{ . }}:{{ . }} {{end}} \
