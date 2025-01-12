@@ -130,7 +130,7 @@ class NetworkEdgeStateConnected : public NetworkEdgeState {
 
         protocol::messages::PublishMessage forwardedPublication = publication;
         forwardedPublication.frame = internal::updateFrameTraversedAndTTL(
-            forwardedPublication.frame, edge->edgeInfo.bridgedNodeID);
+            forwardedPublication.frame, edge->globalNetwork->config.hostID);
 
         if (!edge->shouldForwardMessage(forwardedPublication.frame)) {
             return false;
@@ -188,7 +188,7 @@ class NetworkEdgeStateConnected : public NetworkEdgeState {
         protocol::messages::UnsubscribeMessage unsubscriptionToForward =
             unsubscription;
         unsubscriptionToForward.frame = internal::updateFrameTraversedAndTTL(
-            unsubscriptionToForward.frame, edge->edgeInfo.bridgedNodeID);
+            unsubscriptionToForward.frame, edge->globalNetwork->config.hostID);
 
         if (!edge->shouldForwardMessage(unsubscriptionToForward.frame)) {
             return;
@@ -210,7 +210,7 @@ class NetworkEdgeStateConnected : public NetworkEdgeState {
         protocol::messages::TerminateNetworkMessage terminationToForward =
             termination;
         terminationToForward.frame = internal::updateFrameTraversedAndTTL(
-            terminationToForward.frame, edge->edgeInfo.bridgedNodeID);
+            terminationToForward.frame, edge->globalNetwork->config.hostID);
         terminationToForward.frame.ttl = ONLY_DIRECT_CONNECTION_TTL;
 
         auto result = edge->encoder->terminateNetwork(terminationToForward,
