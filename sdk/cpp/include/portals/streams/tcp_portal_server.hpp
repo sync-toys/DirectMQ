@@ -28,8 +28,8 @@ class TcpPortalServer : public std::enable_shared_from_this<TcpPortalServer> {
         }
 
         alreadyStarted_ = true;
-        ioThread_ = std::thread([this]() { ioService_.run(); });
         acceptConnection();
+        ioThread_ = std::thread([this]() { ioService_.run(); });
     }
 
     void stop() {
