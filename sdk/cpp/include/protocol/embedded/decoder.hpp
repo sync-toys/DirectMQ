@@ -1,5 +1,6 @@
 #pragma once
 #include <pb_decode.h>
+#include <iostream>
 
 #include "../../portal.hpp"
 #include "../decoder.hpp"
@@ -47,7 +48,7 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
 
                 messages::InitConnectionMessage initConnectionMessage{
                     .frame = decodedFrame,
-                    .maxMessageSize = *encoded.max_message_size};
+                    .maxMessageSize = encoded.max_message_size == nullptr ? 0 : *encoded.max_message_size};
 
                 handler->onInitConnection(initConnectionMessage);
                 return DecodingResult{nullptr};
