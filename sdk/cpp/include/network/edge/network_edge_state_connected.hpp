@@ -163,7 +163,7 @@ class NetworkEdgeStateConnected : public NetworkEdgeState {
         protocol::messages::SubscribeMessage subscriptionToForward =
             subscription;
         subscriptionToForward.frame = internal::updateFrameTraversedAndTTL(
-            subscriptionToForward.frame, edge->edgeInfo.bridgedNodeID);
+            subscriptionToForward.frame, edge->globalNetwork->config.hostID);
 
         if (!edge->shouldForwardMessage(subscriptionToForward.frame)) {
             return;

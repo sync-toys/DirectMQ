@@ -4,11 +4,13 @@
 #include <directmq.hpp>
 #include <iomanip>
 #include <iostream>
-#include <mutex>
 #include <portals/streams/tcp_portal_client.hpp>
 #include <portals/streams/tcp_portal_server.hpp>
 #include <sstream>
 #include <string>
+
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 
 #include "commands.hpp"
 #include "notifications.hpp"
@@ -24,9 +26,6 @@ std::string getCurrentTimeString() {
     return oss.str();
 }
 
-std::mutex nodeMutex;
-
-std::mutex exitMutex;
 const int NO_EXIT = -1;
 std::atomic<int> exitFlag(NO_EXIT);
 
@@ -46,12 +45,21 @@ void sendNotification(const UniversalNotification &notification) {
 
 void exitAgent(int exitCode) {
     exitFlag = exitCode;
-    exitMutex.unlock();
 }
 
 void fatal(const std::string &error) {
     sendNotification(UniversalNotification::makeFatal(error));
     exitAgent(1);
+}
+
+
+std::string base64Encode(const std::string &input) {
+    using namespace boost::archive::iterators;
+    using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+
+    std::string encoded(It(std::begin(input)), It(std::end(input)));
+    encoded.append((3 - input.size() % 3) % 3, '=');
+    return encoded;
 }
 
 void registerDiagnosticsHandlers() {
@@ -76,8 +84,8 @@ void registerDiagnosticsHandlers() {
                 std::vector<std::string>(publication.frame.traversed.begin(),
                                          publication.frame.traversed.end()),
                 publication.topic, publication.deliveryStrategy,
-                std::string(publication.payload.begin(),
-                            publication.payload.end())));
+                base64Encode(std::string(publication.payload.begin(),
+                            publication.payload.end()))));
         });
 
     node->setOnSubscriptionHandler(
@@ -193,10 +201,10 @@ void handleSubscribeCommand(SubscribeTopicCommand command) {
     log("Subscribing to topic " + command.topic);
 
     auto subscriptionId = node->subscribe(
-        command.topic, [command](const std::string &topic,
+        command.topic, [](const std::string &topic,
                                  const std::vector<uint8_t> &payload) {
             sendNotification(UniversalNotification::makeMessageReceived(
-                topic, std::string(payload.begin(), payload.end())));
+                topic, base64Encode(std::string(payload.begin(), payload.end()))));
         });
 
     log("Subscription ID: " + std::to_string(subscriptionId));
@@ -212,8 +220,6 @@ void handleUnsubscribeCommand(UnsubscribeTopicCommand command) {
 }
 
 void handleIncomingCommand(const UniversalCommand &command) {
-    std::lock_guard<std::mutex> lock(nodeMutex);
-
     if (command.setup) {
         handleSetupCommand(*command.setup);
     }
@@ -254,7 +260,7 @@ void runCommandLoop() {
         try {
             std::string rawCommand = readCommandFromStdin();
             if (rawCommand.empty()) {
-                return;
+                continue;
             }
 
             UniversalCommand command = UniversalCommand::fromJson(rawCommand);
@@ -267,10 +273,7 @@ void runCommandLoop() {
 
 int main() {
     try {
-        log("Starting DirectMQ testing agent");
-
-        // initialize exit mutex
-        exitMutex.lock();
+        log("Starting DirectMQ C++ SDK testing agent");
 
         log("Agent ready");
         sendNotification(
@@ -278,9 +281,6 @@ int main() {
 
         log("Starting command loop");
         runCommandLoop();
-
-        // exit mutex is unlocked when exitAgent is called
-        exitMutex.lock();
 
         log("Exiting agent with code " + std::to_string(exitFlag));
         return exitFlag;

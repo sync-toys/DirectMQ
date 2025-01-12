@@ -10,14 +10,12 @@ namespace directmq::network::edge {
 class NetworkEdge : public NetworkEdgeStateManager {
    private:
     void setState(NetworkEdgeState* newState) {
-        NetworkEdgeState* oldState = state;
+        auto oldState = state;
 
         state = newState;
         state->onSet();
 
-        if (oldState != nullptr) {
-            delete state;
-        }
+        delete oldState;
     }
 
    public:

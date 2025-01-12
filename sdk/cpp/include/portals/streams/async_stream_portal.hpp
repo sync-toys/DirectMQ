@@ -55,6 +55,19 @@ class AsyncStreamPortal
         void end() override { frameWriter_->send(data); }
     };
 
+    class NoopDataWriter : public portal::DataWriter {
+       public:
+        using Pointer = std::shared_ptr<NoopDataWriter>;
+
+        bool write(const uint8_t *block, const std::size_t blockSize) override {
+            (void)block;
+            (void)blockSize;
+            return false;
+        }
+
+        void end() override {}
+    };
+
     static Pointer create(Socket *socket, ReceiveHandler receiveHandler,
                           ErrorHandler errorHandler) {
         return Pointer(
@@ -85,8 +98,7 @@ class AsyncStreamPortal
         }
 
         if (isClosed_) {
-            throw std::runtime_error(
-                "cannot write to portal, portal is closed");
+            return typename NoopDataWriter::Pointer(new NoopDataWriter());
         }
 
         return typename AsyncDataWriter::Pointer(
