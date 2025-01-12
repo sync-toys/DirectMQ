@@ -163,7 +163,7 @@ class TcpPortalClient : public std::enable_shared_from_this<TcpPortalClient>,
 
     void handleProcessingError(Portal::Pointer portal,
                                const boost::system::error_code &error) {
-        portal->close();
+        close();
         edgeManager_->removeEdge(portal, error.message());
     }
 };
