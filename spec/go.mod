@@ -17,6 +17,7 @@ require (
 )
 
 require (
+	github.com/Lobaro/slip v0.0.0-20170904164317-88dcb78414ea // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect

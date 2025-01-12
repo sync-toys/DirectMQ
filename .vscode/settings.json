@@ -1,3 +1,5 @@
 {
-    "cmake.sourceDirectory": "/workspace/sdk/cpp"
+    "cmake.sourceDirectory": "/workspace/sdk/cpp",
+    "git.autoRepositoryDetection": false,
+    "C_Cpp.autoAddFileAssociations": false
 }

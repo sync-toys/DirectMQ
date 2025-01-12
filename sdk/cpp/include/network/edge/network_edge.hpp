@@ -10,14 +10,12 @@ namespace directmq::network::edge {
 class NetworkEdge : public NetworkEdgeStateManager {
    private:
     void setState(NetworkEdgeState* newState) {
-        NetworkEdgeState* oldState = state;
+        auto oldState = state;
 
         state = newState;
         state->onSet();
 
-        if (oldState != nullptr) {
-            delete state;
-        }
+        delete oldState;
     }
 
    public:
@@ -26,7 +24,7 @@ class NetworkEdge : public NetworkEdgeStateManager {
                 std::shared_ptr<protocol::Decoder> decoder,
                 std::shared_ptr<protocol::Encoder> encoder)
         : NetworkEdgeStateManager(globalNetwork, portal, decoder, encoder) {
-        setDisconnectedState("initial state");
+        state = new NetworkEdgeStateDisconnected(this, "initial state");
     }
 
     void setDisconnectedState(const std::string& reason) override {

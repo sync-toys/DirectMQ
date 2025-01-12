@@ -13,6 +13,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(directmq-sdk)
 
 find_package(nlohmann_json REQUIRED)
+find_package(Boost REQUIRED)
 
 add_executable(directmq-sdk-agent main.cpp)
 
@@ -22,6 +23,8 @@ target_link_libraries(directmq-sdk-agent PRIVATE
     directmq-sdk
     protobuf-nanopb-static
     dmq_proto_embedded
-    nlohmann_json::nlohmann_json)
+    nlohmann_json::nlohmann_json
+    Boost::system
+    )
 
 install(TARGETS directmq-sdk-agent DESTINATION bin)

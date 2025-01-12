@@ -7,6 +7,7 @@
 #include "../constants.hpp"
 #include "../participant.hpp"
 #include "network_edge_state.hpp"
+#include "network_edge_state_manager.hpp"
 #include "state_name.hpp"
 
 namespace directmq::network::edge {
@@ -182,6 +183,9 @@ class NetworkEdgeStateConnecting : public NetworkEdgeState {
             edge->setDisconnectedState("No supported protocol versions match");
             return;
         }
+
+        edge->edgeInfo.negotiatedProtocolVersion = DIRECTMQ_V1; // only v1 is supported at the moment
+        // TODO: proper version negotiation
 
         if (message.frame.ttl == ONLY_DIRECT_CONNECTION_WITH_RESPONSE_TTL) {
             respondWithSupportedProtocolVersions(message);

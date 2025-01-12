@@ -20,8 +20,5 @@
 			"path": "../spec",
 			"name": "Specification"
 		}
-	],
-	"settings": {
-		"nixEnvSelector.nixFile": "${workspaceFolder}/shell.nix"
-	}
+	]
 }

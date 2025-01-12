@@ -100,7 +100,7 @@ func (t *PairTopoTestBench) Start() {
 	t.configure()
 
 	t.benchLog("starting spy")
-	go t.masterSalveSpy.Start()
+	t.masterSalveSpy.Start()
 
 	t.benchLog("spawning master")
 	t.Master.Run(t.config.MasterSpawn, dmqspecagent.SetupCommand{
@@ -255,7 +255,7 @@ func (t *PairTopoTestBench) configureSalve() {
 	})
 
 	t.Salve.OnFatal(func(fatal dmqspecagent.FatalNotification) {
-		t.config.AgentLogger("FATAL: "+fatal.Err, t.Master.GetNodeID())
+		t.config.AgentLogger("FATAL: "+fatal.Err, t.Salve.GetNodeID())
 	})
 }
 

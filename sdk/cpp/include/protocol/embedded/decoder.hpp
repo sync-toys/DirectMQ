@@ -1,9 +1,11 @@
 #pragma once
 #include <pb_decode.h>
+#include <iostream>
 
 #include "../../portal.hpp"
 #include "../decoder.hpp"
 #include "directmq/v1/data_frame.pb.h"
+#include "protocol/messages/publish.hpp"
 
 namespace directmq::protocol::embedded {
 class EmbeddedProtocolDecoderImplementation : public Decoder {
@@ -46,7 +48,7 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
 
                 messages::InitConnectionMessage initConnectionMessage{
                     .frame = decodedFrame,
-                    .maxMessageSize = *encoded.max_message_size};
+                    .maxMessageSize = encoded.max_message_size == nullptr ? 0 : *encoded.max_message_size};
 
                 handler->onInitConnection(initConnectionMessage);
                 return DecodingResult{nullptr};
@@ -58,7 +60,7 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
 
                 messages::ConnectionAcceptedMessage connectionAcceptedMessage{
                     .frame = decodedFrame,
-                    .maxMessageSize = *encoded.max_message_size};
+                    .maxMessageSize = encoded.max_message_size == nullptr ? 0 : *encoded.max_message_size};
 
                 handler->onConnectionAccepted(connectionAcceptedMessage);
                 return DecodingResult{nullptr};
@@ -92,8 +94,10 @@ class EmbeddedProtocolDecoderImplementation : public Decoder {
                 messages::PublishMessage publishMessage{
                     .frame = decodedFrame,
                     .topic = encoded.topic,
-                    .deliveryStrategy = static_cast<messages::DeliveryStrategy>(
-                        *encoded.delivery_strategy),
+                    .deliveryStrategy =
+                        encoded.delivery_strategy == nullptr
+                            ? messages::DeliveryStrategy::AT_LEAST_ONCE
+                            : static_cast<messages::DeliveryStrategy>(*encoded.delivery_strategy),
                     .payload = std::vector<uint8_t>(encoded.payload->size)};
 
                 memcpy(publishMessage.payload.data(), encoded.payload->bytes,

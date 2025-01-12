@@ -1,12 +1,17 @@
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <directmq.hpp>
 #include <iomanip>
 #include <iostream>
-#include <mutex>
+#include <portals/streams/tcp_portal_client.hpp>
+#include <portals/streams/tcp_portal_server.hpp>
 #include <sstream>
 #include <string>
-#include <thread>
+
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 
 #include "commands.hpp"
 #include "notifications.hpp"
@@ -22,13 +27,12 @@ std::string getCurrentTimeString() {
     return oss.str();
 }
 
-std::mutex nodeMutex;
-
-std::mutex exitMutex;
 const int NO_EXIT = -1;
 std::atomic<int> exitFlag(NO_EXIT);
 
-directmq::DirectMQNode *node;
+std::shared_ptr<directmq::DirectMQNode> node;
+directmq::portal::streams::TcpPortalClient::Pointer client = nullptr;
+directmq::portal::streams::TcpPortalServer::Pointer server = nullptr;
 
 void log(const std::string &message) {
     std::cout << message << std::endl;
@@ -42,12 +46,50 @@ void sendNotification(const UniversalNotification &notification) {
 
 void exitAgent(int exitCode) {
     exitFlag = exitCode;
-    exitMutex.unlock();
 }
 
 void fatal(const std::string &error) {
     sendNotification(UniversalNotification::makeFatal(error));
     exitAgent(1);
+}
+
+std::string fixBase64Padding(const std::string &input) {
+    std::string fixed = input;
+    size_t len = fixed.length();
+
+    if (len >= 2 && fixed.substr(len - 2) == "AA") {
+        fixed.replace(len - 2, 2, "==");
+    } else if (len >= 1 && fixed.substr(len - 1) == "A") {
+        fixed.replace(len - 1, 1, "=");
+    }
+
+    return fixed;
+}
+
+std::string base64Encode(const std::string &input) {
+    using namespace boost::archive::iterators;
+    using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+
+    std::string encoded(It(std::begin(input)), It(std::end(input)));
+    size_t padding = (3 - input.length() % 3) % 3;
+    encoded.append(padding, '=');
+    return encoded;
+}
+
+std::string base64Decode(const std::string &input) {
+    using namespace boost::archive::iterators;
+    using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+
+    // Remove padding characters
+    std::string decoded(input);
+    decoded.erase(std::remove(decoded.begin(), decoded.end(), '='), decoded.end());
+
+    try {
+        std::string output(It(std::begin(decoded)), It(std::end(decoded)));
+        return output;
+    } catch (const std::exception &e) {
+        throw std::runtime_error("Invalid base64 input");
+    }
 }
 
 void registerDiagnosticsHandlers() {
@@ -67,13 +109,15 @@ void registerDiagnosticsHandlers() {
 
     node->setOnPublicationHandler(
         [](directmq::protocol::messages::PublishMessage publication) {
+            auto encoded = base64Encode(std::string(publication.payload.begin(),
+                            publication.payload.end()));
+
             sendNotification(UniversalNotification::makeOnPublication(
                 publication.frame.ttl,
                 std::vector<std::string>(publication.frame.traversed.begin(),
                                          publication.frame.traversed.end()),
                 publication.topic, publication.deliveryStrategy,
-                std::string(publication.payload.begin(),
-                            publication.payload.end())));
+                encoded));
         });
 
     node->setOnSubscriptionHandler(
@@ -114,21 +158,48 @@ void handleSetupCommand(SetupCommand command) {
         .hostMaxIncomingMessageSize = command.maxMessageSize,
         .hostID = command.nodeId};
 
-    node = new directmq::DirectMQNode(config);
+    node = std::shared_ptr<directmq::DirectMQNode>(
+        new directmq::DirectMQNode(config));
 
     registerDiagnosticsHandlers();
 
     log("Setup complete");
 }
 
+std::pair<std::string, uint_least16_t> parseAddress(
+    const std::string &address) {
+    std::size_t colonPos = address.rfind(':');
+    if (colonPos == std::string::npos) {
+        throw std::invalid_argument(
+            "Invalid address format. Expected format: host:port");
+    }
+
+    const std::string TCP_PROTOCOL = "tcp://";
+    std::string host = address.substr(TCP_PROTOCOL.length(), colonPos - TCP_PROTOCOL.length());
+    std::string rawPort = address.substr(colonPos + 1, address.length() - colonPos - 2);
+
+    uint_least16_t port = std::stoi(rawPort);
+
+    return {host, port};
+}
+
 void handleListenCommand(ListenCommand command) {
-    log("Listening as server at " + command.address + ":" +
-        std::to_string(command.port));
+    log("Listening as server at " + command.address);
+
+    auto [host, port] = parseAddress(command.address);
+
+    server = directmq::portal::streams::TcpPortalServer::create(node, port, 0);
+
+    server->start();
 }
 
 void handleConnectCommand(ConnectCommand command) {
-    log("Connecting as client to " + command.address + ":" +
-        std::to_string(command.port));
+    log("Connecting as client to " + command.address);
+
+    auto [host, port] = parseAddress(command.address);
+
+    client =
+        directmq::portal::streams::TcpPortalClient::connect(node, host, port);
 }
 
 void handleStopCommand(StopCommand command) {
@@ -138,6 +209,14 @@ void handleStopCommand(StopCommand command) {
         sendNotification(UniversalNotification::makeStopped(command.reason));
     });
 
+    if (server) {
+        server->stop();
+    }
+
+    if (client) {
+        client->close();
+    }
+
     log("Clean exit 0");
     exitAgent(0);
 }
@@ -145,8 +224,9 @@ void handleStopCommand(StopCommand command) {
 void handlePublishCommand(PublishCommand command) {
     log("Publishing message to topic " + command.topic);
 
-    std::vector<uint8_t> payload(command.payload.begin(),
-                                 command.payload.end());
+    auto decodedPayload = base64Decode(command.payload);
+    std::vector<uint8_t> payload(decodedPayload.begin(),
+                                 decodedPayload.end());
     node->publish(command.topic, payload, command.deliveryStrategy);
 }
 
@@ -154,10 +234,10 @@ void handleSubscribeCommand(SubscribeTopicCommand command) {
     log("Subscribing to topic " + command.topic);
 
     auto subscriptionId = node->subscribe(
-        command.topic, [command](const std::string &topic,
+        command.topic, [](const std::string &topic,
                                  const std::vector<uint8_t> &payload) {
             sendNotification(UniversalNotification::makeMessageReceived(
-                topic, std::string(payload.begin(), payload.end())));
+                topic, base64Encode(std::string(payload.begin(), payload.end()))));
         });
 
     log("Subscription ID: " + std::to_string(subscriptionId));
@@ -173,8 +253,6 @@ void handleUnsubscribeCommand(UnsubscribeTopicCommand command) {
 }
 
 void handleIncomingCommand(const UniversalCommand &command) {
-    std::lock_guard<std::mutex> lock(nodeMutex);
-
     if (command.setup) {
         handleSetupCommand(*command.setup);
     }
@@ -215,7 +293,7 @@ void runCommandLoop() {
         try {
             std::string rawCommand = readCommandFromStdin();
             if (rawCommand.empty()) {
-                return;
+                continue;
             }
 
             UniversalCommand command = UniversalCommand::fromJson(rawCommand);
@@ -226,34 +304,21 @@ void runCommandLoop() {
     }
 }
 
-void runNodeLoop() {
-    while (exitFlag == NO_EXIT) {
-        try {
-            std::lock_guard<std::mutex> lock(nodeMutex);
-        } catch (const std::exception &e) {
-            fatal("Node loop fatal failure: " + std::string(e.what()));
-        }
-    }
-}
-
 int main() {
-    log("Starting DirectMQ testing agent");
+    try {
+        log("Starting DirectMQ C++ SDK testing agent");
 
-    // initialize exit mutex
-    exitMutex.lock();
+        log("Agent ready");
+        sendNotification(
+            UniversalNotification::makeReady(getCurrentTimeString()));
 
-    log("Starting node loop");
-    std::thread nodeLoop(runNodeLoop);
+        log("Starting command loop");
+        runCommandLoop();
 
-    log("Starting command loop");
-    std::thread commandLoop(runCommandLoop);
-
-    log("Agent ready");
-    sendNotification(UniversalNotification::makeReady(getCurrentTimeString()));
-
-    // exit mutex is unlocked when exitAgent is called
-    exitMutex.lock();
-
-    log("Exiting agent with code " + std::to_string(exitFlag));
-    return exitFlag;
+        log("Exiting agent with code " + std::to_string(exitFlag));
+        return exitFlag;
+    } catch (const std::exception &e) {
+        fatal("Fatal failure: " + std::string(e.what()));
+        return 1;
+    }
 }

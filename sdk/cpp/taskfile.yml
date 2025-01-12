@@ -48,6 +48,7 @@ tasks:
         cmds:
             - echo "Generating cmake configuration for {{.BUILD_TYPE | lower}} build"
             - cmake --preset conan-{{.BUILD_TYPE | lower}} -B build/{{.BUILD_TYPE}} -S . -DDMQ_BUILD_TESTS={{.DMQ_BUILD_TESTS}} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFETCHCONTENT_BASE_DIR=./build/_deps
+            - cp build/{{.BUILD_TYPE}}/compile_commands.json build/.
 
     install:
         desc: Install the DirectMQ C++ SDK dependencies

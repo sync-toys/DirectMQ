@@ -160,10 +160,10 @@ func (bench *LineTopoTestBench) Stop(reason string) {
 
 func (bench *LineTopoTestBench) startSpies() {
 	bench.benchLog("starting left-middle spy")
-	go bench.leftMiddleSpy.Start()
+	bench.leftMiddleSpy.Start()
 
 	bench.benchLog("starting middle-right spy")
-	go bench.rightMiddleSpy.Start()
+	bench.rightMiddleSpy.Start()
 }
 
 func (bench *LineTopoTestBench) startAgents() {

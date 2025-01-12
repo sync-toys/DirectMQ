@@ -1,12 +1,12 @@
 package dmqspecagent
 
 import (
-	"net/http"
+	"net"
 	"net/url"
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
+	dmqportals "github.com/sync-toys/DirectMQ/sdk/go/portals"
 )
 
 type ForwardedMessage struct {
@@ -18,32 +18,38 @@ type ForwardedMessage struct {
 
 	Message []byte
 }
+
 type Forwarder interface {
-	StartWebsocketForwarder() error
+	StartForwarder() error
 	OnMessage(handler func(message ForwardedMessage))
 	Abort()
 }
 
-type websocketForwarder struct {
+type TcpForwarder interface {
+	StartTcpForwarder() error
+	OnMessage(handler func(message ForwardedMessage))
+	Abort()
+}
+
+type tcpForwarder struct {
 	fromURL   *url.URL
 	fromAlias string
 
 	toURL   *url.URL
 	toAlias string
 
-	incomingConn *websocket.Conn
-	outgoingConn *websocket.Conn
+	incomingConn net.Conn
+	outgoingConn net.Conn
 
 	messageHandler func(message ForwardedMessage)
-	server         *http.Server
 
 	abortMutex sync.Mutex
 }
 
-var _ Forwarder = (*websocketForwarder)(nil)
+var _ Forwarder = (*tcpForwarder)(nil)
 
-func NewWebsocketForwarder(from *url.URL, fromAlias string, to *url.URL, toAlias string) *websocketForwarder {
-	forwarder := &websocketForwarder{
+func NewTcpForwarder(from *url.URL, fromAlias string, to *url.URL, toAlias string) *tcpForwarder {
+	forwarder := &tcpForwarder{
 		fromURL:   from,
 		fromAlias: fromAlias,
 
@@ -56,95 +62,64 @@ func NewWebsocketForwarder(from *url.URL, fromAlias string, to *url.URL, toAlias
 		abortMutex: sync.Mutex{},
 	}
 
-	forwarder.initWebsocketServer()
-
 	return forwarder
 }
 
-func (f *websocketForwarder) StartWebsocketForwarder() error {
-	err := f.server.ListenAndServe()
-
-	if err != http.ErrServerClosed {
+func (f *tcpForwarder) StartForwarder() error {
+	listener, err := net.Listen("tcp", f.fromURL.Host)
+	if err != nil {
+		listener.Close()
 		return err
 	}
+
+	go f.acceptConnection(listener)
+	return nil
+}
+
+func (f *tcpForwarder) acceptConnection(listener net.Listener) error {
+	defer listener.Close()
+
+	conn, err := listener.Accept()
+	if err != nil {
+		return err
+	}
+
+	f.incomingConn = conn
+	return f.startTcpBridge()
+}
+
+func (f *tcpForwarder) startTcpBridge() error {
+	outgoing, err := retryErr(15, 100*time.Millisecond, func() (net.Conn, error) {
+		return net.Dial("tcp", f.toURL.Host)
+	})
+
+	if err != nil {
+		f.incomingConn.Close()
+		return err
+	}
+
+	f.outgoingConn = outgoing
+
+	done := make(chan struct{}, 2)
+
+	go f.runForwardingRoutine(f.incomingConn, f.outgoingConn, f.fromURL, f.fromAlias, f.toURL, f.toAlias, done)
+	go f.runForwardingRoutine(f.outgoingConn, f.incomingConn, f.toURL, f.toAlias, f.fromURL, f.fromAlias, done)
+
+	<-done
+	<-done
 
 	return nil
 }
 
-func (f *websocketForwarder) OnMessage(handler func(message ForwardedMessage)) {
+func (f *tcpForwarder) OnMessage(handler func(message ForwardedMessage)) {
 	f.messageHandler = handler
 }
 
-func (f *websocketForwarder) Abort() {
-	f.abortMutex.Lock()
-	defer f.abortMutex.Unlock()
-
-	f.server.Close()
-	msg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")
-
-	if f.incomingConn != nil {
-		f.incomingConn.WriteMessage(websocket.CloseMessage, msg)
-		f.incomingConn.Close()
-		f.incomingConn = nil
-	}
-
-	if f.outgoingConn != nil {
-		f.outgoingConn.WriteMessage(websocket.CloseMessage, msg)
-		f.outgoingConn.Close()
-		f.outgoingConn = nil
-	}
+func (f *tcpForwarder) Abort() {
 }
 
-func (f *websocketForwarder) initWebsocketServer() {
-	mux := http.NewServeMux()
-	mux.HandleFunc(f.fromURL.Path, f.createWebsocketHandler())
-
-	server := &http.Server{
-		Addr:    f.fromURL.Host,
-		Handler: mux,
-	}
-
-	f.server = server
-}
-
-func (f *websocketForwarder) createWebsocketHandler() http.HandlerFunc {
-	upgrader := websocket.Upgrader{}
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		if f.incomingConn != nil {
-			panic("websocket forwarder already connected")
-		}
-
-		c, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			panic("unable to upgrade connection: " + err.Error())
-		}
-
-		f.incomingConn = c
-
-		retry(5, 100*time.Millisecond, func() struct{} {
-			f.outgoingConn, _, err = websocket.DefaultDialer.Dial(f.toURL.String(), nil)
-			if err != nil {
-				panic("unable to dial to the target websocket: " + err.Error())
-			}
-
-			return struct{}{}
-		})
-
-		done := make(chan struct{}, 2)
-
-		go f.runForwardingRoutine(f.incomingConn, f.outgoingConn, f.fromURL, f.fromAlias, f.toURL, f.toAlias, done)
-		go f.runForwardingRoutine(f.outgoingConn, f.incomingConn, f.toURL, f.toAlias, f.fromURL, f.fromAlias, done)
-
-		<-done
-		<-done
-
-		f.Abort()
-	}
-}
-
-func (f *websocketForwarder) runForwardingRoutine(
-	from, to *websocket.Conn,
+func (f *tcpForwarder) runForwardingRoutine(
+	from, to net.Conn,
 	fromURL *url.URL, fromAlias string,
 	toURL *url.URL, toAlias string,
 	done chan struct{},
@@ -152,7 +127,7 @@ func (f *websocketForwarder) runForwardingRoutine(
 	defer func() { done <- struct{}{} }()
 
 	for {
-		_, data, err := from.ReadMessage()
+		data, err := dmqportals.ReadFullPacket(from)
 		if err != nil {
 			return
 		}
@@ -171,7 +146,7 @@ func (f *websocketForwarder) runForwardingRoutine(
 			f.messageHandler(message)
 		}
 
-		if err := to.WriteMessage(websocket.BinaryMessage, data); err != nil {
+		if err := dmqportals.WriteFullPacket(to, data); err != nil {
 			return
 		}
 	}

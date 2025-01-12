@@ -198,13 +198,13 @@ func (bench *CentralPointTopoTestBench) StopWithoutTimeout(reason string) {
 
 func (bench *CentralPointTopoTestBench) startSpies() {
 	bench.benchLog("starting top-central spy")
-	go bench.topCentralSpy.Start()
+	bench.topCentralSpy.Start()
 
 	bench.benchLog("starting left-central spy")
-	go bench.leftCentralSpy.Start()
+	bench.leftCentralSpy.Start()
 
 	bench.benchLog("starting central-right spy")
-	go bench.rightCentralSpy.Start()
+	bench.rightCentralSpy.Start()
 }
 
 func (bench *CentralPointTopoTestBench) startAgents() {

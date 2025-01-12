@@ -18,12 +18,10 @@ struct SetupCommand {
 
 struct ListenCommand {
     std::string address;
-    uint16_t port;
 };
 
 struct ConnectCommand {
     std::string address;
-    uint16_t port;
 };
 
 struct StopCommand {
@@ -78,13 +76,11 @@ struct UniversalCommand {
         if (c.contains("listen")) {
             r.listen = new ListenCommand();
             r.listen->address = c["listen"]["address"];
-            r.listen->port = c["listen"]["port"];
         }
 
         if (c.contains("connect")) {
             r.connect = new ConnectCommand();
             r.connect->address = c["connect"]["address"];
-            r.connect->port = c["connect"]["port"];
         }
 
         if (c.contains("stop")) {
@@ -95,9 +91,9 @@ struct UniversalCommand {
         if (c.contains("publish")) {
             r.publish = new PublishCommand();
             r.publish->topic = c["publish"]["topic"];
-            r.publish->deliveryStrategy =
+            r.publish->deliveryStrategy = c["publish"].contains("deliveryStrategy") ?
                 (directmq::protocol::messages::DeliveryStrategy)(
-                    uint8_t)c["publish"]["deliveryStrategy"];
+                    uint8_t)c["publish"]["deliveryStrategy"] : directmq::protocol::messages::DeliveryStrategy::AT_LEAST_ONCE;
             r.publish->payload = c["publish"]["payload"];
         }
 

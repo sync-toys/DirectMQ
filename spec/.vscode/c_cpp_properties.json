@@ -1,13 +1,13 @@
 {
     "configurations": [
         {
-            "name": "Specification in Devcontainer",
-            "compileCommands": "${workspaceFolder}/agents/cpp/build/Debug/compile_commands.json",
-            "configurationProvider": "ms-vscode.cmake-tools",
-            "includePath": [
-                "${workspaceFolder}/agents/cpp/**",
-                "${workspaceFolder}/../sdk/cpp/include/**"
-            ],
+            "name": "Linux",
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "clang-x64",
+            "compileCommands": "${workspaceFolder}/agents/cpp/build/compile_commands.json"
         }
     ],
     "version": 4

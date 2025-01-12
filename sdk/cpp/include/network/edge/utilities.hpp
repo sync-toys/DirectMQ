@@ -25,14 +25,13 @@ bool checkForNetworkLoops(const protocol::messages::DataFrame& frame) {
 
 protocol::messages::DataFrame updateFrameTraversedAndTTL(
     const protocol::messages::DataFrame& frame, const std::string& hostID) {
-    if (frame.traversed.size() > 0 && frame.traversed.back() == hostID) {
-        return frame;
+    protocol::messages::DataFrame updatedFrame = frame;
+
+    if (frame.traversed.size() > 0 && frame.traversed.back() != hostID) {
+        updatedFrame.traversed.push_back(hostID);
     }
 
-    protocol::messages::DataFrame updatedFrame = frame;
-    updatedFrame.traversed.push_back(hostID);
     updatedFrame.ttl--;
-
     return updatedFrame;
 }
 

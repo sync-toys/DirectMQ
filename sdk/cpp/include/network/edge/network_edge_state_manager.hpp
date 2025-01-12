@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include "../../portal.hpp"
 #include "../../protocol/decoder.hpp"
 #include "../../protocol/encoder.hpp"
@@ -30,15 +31,6 @@ class NetworkEdgeStateManager : public NetworkParticipant,
     EdgeInfo edgeInfo;
 
     subscriptions::SubscriptionList<void*> bridgedNodeSubscriptions;
-
-    void setState(NetworkEdgeState* newState) {
-        auto oldState = state;
-
-        state = newState;
-        state->onSet();
-
-        delete oldState;
-    }
 
     friend class NetworkEdgeStateDisconnected;
     friend class NetworkEdgeStateConnecting;
@@ -116,7 +108,7 @@ class NetworkEdgeStateManager : public NetworkParticipant,
             return false;
         }
 
-        return *frame.traversed.end() == edgeInfo.bridgedNodeID;
+        return frame.traversed.back() == edgeInfo.bridgedNodeID;
     }
 
     bool handlePublish(

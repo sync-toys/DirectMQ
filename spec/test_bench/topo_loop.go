@@ -161,13 +161,13 @@ func (bench *LoopTopoTestBench) Stop(reason string) {
 
 func (bench *LoopTopoTestBench) startSpies() {
 	bench.benchLog("starting left-top spy")
-	go bench.leftTopSpy.Start()
+	bench.leftTopSpy.Start()
 
 	bench.benchLog("starting top-right spy")
-	go bench.topRightSpy.Start()
+	bench.topRightSpy.Start()
 
 	bench.benchLog("starting right-left spy")
-	go bench.rightLeftSpy.Start()
+	bench.rightLeftSpy.Start()
 }
 
 func (bench *LoopTopoTestBench) startAgents() {

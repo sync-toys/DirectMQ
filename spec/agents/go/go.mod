@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/Lobaro/slip v0.0.0-20170904164317-88dcb78414ea // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	golang.org/x/net v0.28.0 // indirect

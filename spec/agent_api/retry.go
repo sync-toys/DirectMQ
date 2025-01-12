@@ -30,3 +30,16 @@ func retry[TResult interface{}](maxRetries int, retryInterval time.Duration, fun
 
 	panic(fmt.Sprintf("failed to execute function after %s retries: %v"+strconv.Itoa(maxRetries), panics))
 }
+
+func retryErr[TResult interface{}](maxRetries int, retryInterval time.Duration, funcToExec func() (TResult, error)) (result TResult, lastError error) {
+	for i := 0; i < maxRetries; i++ {
+		result, lastError = funcToExec()
+		if lastError == nil {
+			return
+		}
+
+		time.Sleep(retryInterval)
+	}
+
+	return
+}

@@ -6,8 +6,7 @@ class DirectMQ(ConanFile):
     generators = ("CMakeToolchain", "CMakeDeps")
 
     def requirements(self):
-        self.requires("websocketpp/0.8.2")
-        self.requires("uwebsockets/20.65.0")
+        self.requires("boost/1.86.0")
         self.requires("catch2/2.13.10")
 
     def build_requirements(self):

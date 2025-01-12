@@ -27,6 +27,7 @@ tasks:
         cmds:
             - echo "Generating DirectMQ C++ SDK test agent CMake build system"
             - cmake --preset conan-debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFETCHCONTENT_BASE_DIR=./build/_deps -B build/Debug -S .
+            - cp build/Debug/compile_commands.json build/.
 
     install:
         desc: Install the DirectMQ C++ SDK test agent dependencies
