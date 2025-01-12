@@ -255,7 +255,7 @@ func (t *PairTopoTestBench) configureSalve() {
 	})
 
 	t.Salve.OnFatal(func(fatal dmqspecagent.FatalNotification) {
-		t.config.AgentLogger("FATAL: "+fatal.Err, t.Master.GetNodeID())
+		t.config.AgentLogger("FATAL: "+fatal.Err, t.Salve.GetNodeID())
 	})
 }
 
