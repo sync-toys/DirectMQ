@@ -1,4 +1,5 @@
 {
     "cmake.sourceDirectory": "./",
-    "C_Cpp.autoAddFileAssociations": false
+    "C_Cpp.autoAddFileAssociations": false,
+    "cmake.ignoreCMakeListsMissing": true
 }
