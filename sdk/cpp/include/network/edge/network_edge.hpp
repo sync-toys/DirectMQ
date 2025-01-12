@@ -26,7 +26,7 @@ class NetworkEdge : public NetworkEdgeStateManager {
                 std::shared_ptr<protocol::Decoder> decoder,
                 std::shared_ptr<protocol::Encoder> encoder)
         : NetworkEdgeStateManager(globalNetwork, portal, decoder, encoder) {
-        setDisconnectedState("initial state");
+        state = new NetworkEdgeStateDisconnected(this, "initial state");
     }
 
     void setDisconnectedState(const std::string& reason) override {
