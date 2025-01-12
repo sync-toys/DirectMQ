@@ -71,6 +71,7 @@
         "Message": {
             "publish": {
                 "payload": "SGVsbG8sIFdvcmxkIQ==",
+                "size": "13",
                 "topic": "test"
             },
             "traversed": [
