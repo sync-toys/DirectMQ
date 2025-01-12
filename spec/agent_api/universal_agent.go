@@ -87,6 +87,7 @@ func (ua *UniversalAgent) startNotificationLoop() {
 	for {
 		message, err := reader.ReadString('\n')
 		if err != nil && (err == io.EOF || strings.Contains(err.Error(), "file already closed")) {
+			ua.onFatal(FatalNotification{Err: "Agent process has exited"})
 			return
 		}
 
