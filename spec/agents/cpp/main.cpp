@@ -10,6 +10,7 @@
 #include <string>
 
 #include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 
 #include "commands.hpp"
@@ -52,14 +53,40 @@ void fatal(const std::string &error) {
     exitAgent(1);
 }
 
+std::string fixBase64Padding(const std::string &input) {
+    std::string fixed = input;
+    size_t len = fixed.length();
+
+    if (len >= 2 && fixed.substr(len - 2) == "AA") {
+        fixed.replace(len - 2, 2, "==");
+    } else if (len >= 1 && fixed.substr(len - 1) == "A") {
+        fixed.replace(len - 1, 1, "=");
+    }
+
+    return fixed;
+}
 
 std::string base64Encode(const std::string &input) {
     using namespace boost::archive::iterators;
     using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
 
     std::string encoded(It(std::begin(input)), It(std::end(input)));
-    encoded.append((3 - input.size() % 3) % 3, '=');
-    return encoded;
+    return fixBase64Padding(encoded);
+}
+std::string base64Decode(const std::string &input) {
+    using namespace boost::archive::iterators;
+    using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+
+    // Remove padding characters
+    std::string decoded(input);
+    decoded.erase(std::remove(decoded.begin(), decoded.end(), '='), decoded.end());
+
+    try {
+        std::string output(It(std::begin(decoded)), It(std::end(decoded)));
+        return output;
+    } catch (const std::exception &e) {
+        throw std::runtime_error("Invalid base64 input");
+    }
 }
 
 void registerDiagnosticsHandlers() {
@@ -79,13 +106,15 @@ void registerDiagnosticsHandlers() {
 
     node->setOnPublicationHandler(
         [](directmq::protocol::messages::PublishMessage publication) {
+            auto encoded = base64Encode(std::string(publication.payload.begin(),
+                            publication.payload.end()));
+
             sendNotification(UniversalNotification::makeOnPublication(
                 publication.frame.ttl,
                 std::vector<std::string>(publication.frame.traversed.begin(),
                                          publication.frame.traversed.end()),
                 publication.topic, publication.deliveryStrategy,
-                base64Encode(std::string(publication.payload.begin(),
-                            publication.payload.end()))));
+                encoded));
         });
 
     node->setOnSubscriptionHandler(
@@ -192,8 +221,9 @@ void handleStopCommand(StopCommand command) {
 void handlePublishCommand(PublishCommand command) {
     log("Publishing message to topic " + command.topic);
 
-    std::vector<uint8_t> payload(command.payload.begin(),
-                                 command.payload.end());
+    auto decodedPayload = base64Decode(command.payload);
+    std::vector<uint8_t> payload(decodedPayload.begin(),
+                                 decodedPayload.end());
     node->publish(command.topic, payload, command.deliveryStrategy);
 }
 
