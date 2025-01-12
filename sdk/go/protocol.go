@@ -221,6 +221,7 @@ func (p *ProtobufProtocol) Publish(message PublishMessage) error {
 			Publish: &protocol.Publish{
 				Topic:            message.Topic,
 				DeliveryStrategy: protocol.DeliveryStrategy(message.DeliveryStrategy),
+				Size:             uint64(len(message.Payload)),
 				Payload:          message.Payload,
 			},
 		},
