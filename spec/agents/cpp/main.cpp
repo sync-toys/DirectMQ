@@ -71,8 +71,11 @@ std::string base64Encode(const std::string &input) {
     using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
 
     std::string encoded(It(std::begin(input)), It(std::end(input)));
-    return fixBase64Padding(encoded);
+    size_t padding = (3 - input.length() % 3) % 3;
+    encoded.append(padding, '=');
+    return encoded;
 }
+
 std::string base64Decode(const std::string &input) {
     using namespace boost::archive::iterators;
     using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
