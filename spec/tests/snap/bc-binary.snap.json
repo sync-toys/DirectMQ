@@ -71,6 +71,7 @@
         "Message": {
             "publish": {
                 "payload": "AAECAw==",
+                "size": "4",
                 "topic": "test"
             },
             "traversed": [

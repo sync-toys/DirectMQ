@@ -84,6 +84,7 @@
         "Message": {
             "publish": {
                 "payload": "SGVsbG8sIFdvcmxkISAobWFzdGVyKQ==",
+                "size": "22",
                 "topic": "test"
             },
             "traversed": [
@@ -98,6 +99,7 @@
         "Message": {
             "publish": {
                 "payload": "SGVsbG8sIFdvcmxkISAoc2FsdmUp",
+                "size": "21",
                 "topic": "test"
             },
             "traversed": [

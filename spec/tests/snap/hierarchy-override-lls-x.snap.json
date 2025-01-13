@@ -84,6 +84,7 @@
         "Message": {
             "publish": {
                 "payload": "c3luY2hyb25pemF0aW9u",
+                "size": "15",
                 "topic": "internal/control"
             },
             "traversed": [

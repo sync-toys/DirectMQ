@@ -72,6 +72,7 @@
             "publish": {
                 "deliveryStrategy": "DELIVERY_STRATEGY_AT_MOST_ONCE",
                 "payload": "SGVsbG8sIFdvcmxkIQ==",
+                "size": "13",
                 "topic": "test"
             },
             "traversed": [
